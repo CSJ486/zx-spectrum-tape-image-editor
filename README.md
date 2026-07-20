@@ -21,7 +21,7 @@ Since this is a completely client-side application built into a single HTML file
 
 ## 🛠️ Tech Stack
 
-Built entirely with Vanilla HTML5, CSS3, and JavaScript. **Zero external libraries.** 
+Made by: Google Gemini AI, & ChatGPT. Built entirely with Vanilla HTML5, CSS3, and JavaScript. **Zero external libraries.** 
 *   **Canvas API:** Used for pixel-perfect attribute clash rendering and image scaling.
 *   **Web Audio API:** Used for highly accurate cassette tape synthesis and Schmitt-trigger edge-detection decoding.
 
