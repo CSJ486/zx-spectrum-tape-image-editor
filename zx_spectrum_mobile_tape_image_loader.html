@@ -1,0 +1,2038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ZX Spectrum Mobile Tape & Image Loader</title>
+  <style>
+    /* Clean Minimalist Styling */
+    :root {
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-color: #0f172a;
+      --border-color: #e2e8f0;
+      --accent-color: #2563eb;
+      --accent-hover: #1d4ed8;
+      --muted-text: #64748b;
+      --spectrum-border: #334155;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding: 16px;
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    header {
+      width: 100%;
+      max-width: 600px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      text-transform: uppercase;
+      color: var(--text-color);
+    }
+
+    header p {
+      font-size: 0.875rem;
+      color: var(--muted-text);
+      margin-top: 4px;
+    }
+
+    .main-container {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Screen Display Styling */
+    .viewport-container {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      background: #111;
+      border-radius: 8px;
+      padding: 16px;
+      position: relative;
+      overflow: auto;
+      width: 100%;
+      border: 3px solid var(--spectrum-border);
+      transition: background-color 0.05s linear;
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      max-width: 100%;
+      flex-shrink: 0;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -webkit-crisp-edges;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      background-color: #000;
+      aspect-ratio: 4/3;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Authentic CRT overlay */
+    .crt-overlay {
+      position: absolute;
+      top: 16px; left: 16px; right: 16px; bottom: 16px;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+      background-size: 100% 2px, 3px 100%;
+      pointer-events: none;
+      z-index: 10;
+      display: none;
+      box-shadow: inset 0 0 16px rgba(0,0,0,0.8);
+    }
+    
+    .crt-active .crt-overlay {
+      display: block;
+    }
+    .crt-active canvas {
+      filter: contrast(1.1) brightness(1.05) saturate(1.2);
+    }
+
+    .scale-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 12px;
+      border-top: 1px solid var(--border-color);
+      padding-top: 12px;
+    }
+
+    .scale-controls label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted-text);
+      text-transform: uppercase;
+    }
+
+    .scale-controls select {
+      width: auto;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+
+    /* Tabs Styling */
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .tab-btn {
+      flex: 1 1 30%;
+      padding: 10px 4px;
+      background: var(--card-bg);
+      border: none;
+      font-weight: 600;
+      font-size: 0.75rem;
+      color: var(--muted-text);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+      border-right: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .tab-btn:nth-child(3n) { border-right: none; }
+    .tab-btn:last-child { border-right: none; border-bottom: none; }
+
+    .tab-btn.active {
+      background: var(--accent-color);
+      color: #fff;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Control Groups */
+    .control-group { margin-bottom: 12px; }
+    .control-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--muted-text);
+      margin-bottom: 6px;
+    }
+
+    .slider-row { display: flex; align-items: center; gap: 12px; }
+    .slider-row input[type="range"] {
+      flex: 1; height: 6px; border-radius: 3px; background: var(--border-color); outline: none; accent-color: var(--accent-color);
+    }
+    .slider-value { font-size: 0.85rem; font-weight: bold; min-width: 32px; text-align: right; }
+
+    select, input[type="text"], input[type="number"], textarea {
+      width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem; background: var(--bg-color); color: var(--text-color); outline: none; font-family: inherit;
+    }
+    
+    textarea { font-family: monospace; resize: vertical; min-height: 120px; font-size: 0.85rem; }
+    select:focus, input[type="text"]:focus, input[type="number"]:focus, textarea:focus { border-color: var(--accent-color); }
+
+    .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+
+    button.action-btn, label.upload-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 16px; background-color: var(--accent-color); color: white; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s; width: 100%; text-align: center; text-transform: uppercase; letter-spacing: 0.02em;
+    }
+    button.action-btn:hover, label.upload-btn:hover { background-color: var(--accent-hover); }
+    button.secondary-btn { background-color: #f1f5f9; color: var(--text-color); border: 1px solid var(--border-color); }
+    button.secondary-btn:hover { background-color: #e2e8f0; }
+
+    .switch-container { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
+    .switch { position: relative; display: inline-block; width: 48px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .2s; border-radius: 24px; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .2s; border-radius: 50%; }
+    input:checked + .slider { background-color: var(--accent-color); }
+    input:checked + .slider:before { transform: translateX(24px); }
+
+    .file-input { display: none; }
+
+    .loader-status { margin-top: 12px; background: #f1f5f9; border-radius: 8px; padding: 12px; font-size: 0.85rem; }
+    .loader-status-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .progress-bar-bg { background-color: #cbd5e1; height: 8px; border-radius: 4px; overflow: hidden; width: 100%; }
+    .progress-bar-fill { background-color: var(--accent-color); height: 100%; width: 0%; transition: width 0.1s linear; }
+    .status-text { font-family: monospace; color: var(--text-color); font-weight: bold; }
+    .info-block { font-size: 0.8rem; color: var(--muted-text); line-height: 1.4; margin-top: 8px; }
+    .wave-visualizer { width: 100%; height: 32px; background: #000; border-radius: 4px; margin-top: 8px; }
+
+    /* Custom Non-blocking compile status box */
+    .compile-status-box {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-family: monospace;
+      display: none;
+    }
+    .compile-status-error {
+      background-color: #fef2f2;
+      border: 1px solid #fca5a5;
+      color: #991b1b;
+    }
+    .compile-status-success {
+      background-color: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+    }
+
+    /* Social Links Styling */
+    .social-links { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+    .social-link { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text-color); padding: 10px; border-radius: 8px; background: #f8fafc; border: 1px solid var(--border-color); transition: background 0.2s; }
+    .social-link:hover { background: #e2e8f0; }
+    .social-link svg { width: 28px; height: 28px; flex-shrink: 0; }
+    .social-text { display: flex; flex-direction: column; }
+    .social-title { font-weight: bold; font-size: 0.95rem; }
+    .social-handle { font-size: 0.8rem; color: var(--muted-text); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>ZX Mobile Tape Loader</h1>
+    <p>Retro-Computing Image Converter &amp; Simulator</p>
+  </header>
+
+  <div class="main-container">
+
+    <!-- Screen Canvas -->
+    <div class="card" style="padding: 12px;">
+      <div id="border-viewport" class="viewport-container" style="background-color: #c0c0c0;">
+        <canvas id="spectrum-canvas" width="256" height="192"></canvas>
+        <div class="crt-overlay" id="crt-overlay-fx"></div>
+      </div>
+      
+      <!-- Display Canvas Scale Controls -->
+      <div class="scale-controls">
+        <label>Display Zoom Level</label>
+        <select id="param-display-scale">
+          <option value="auto">Auto Fit (Mobile)</option>
+          <option value="1">1x (256x192)</option>
+          <option value="2">2x (512x384)</option>
+          <option value="3">3x (768x576)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Interface tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab(this, 'tab-converter')">Spectrumizer</button>
+      <button class="tab-btn" onclick="switchTab(this, 'tab-basic')">BASIC Editor</button>
+      <button class="tab-btn" onclick="switchTab(this, 'tab-loader')">Tape Play</button>
+      <button class="tab-btn" onclick="switchTab(this, 'tab-decoder')">WAV Decode</button>
+      <button class="tab-btn" onclick="switchTab(this, 'tab-extras')">Extras & FX</button>
+      <button class="tab-btn" onclick="switchTab(this, 'tab-about')">About</button>
+    </div>
+
+    <!-- Convert PNG/JPG to Spectrum Screen$ -->
+    <div id="tab-converter" class="card tab-content active">
+      <div class="card-title">
+        <span>Image Spectrumizer</span>
+        <span style="font-size: 0.75rem; color: var(--muted-text)">Convert to SCR</span>
+      </div>
+
+      <div class="control-group">
+        <label>Select Native Source Image</label>
+        <label for="img-upload" class="upload-btn">
+          Select Photo / Image
+        </label>
+        <input type="file" id="img-upload" class="file-input" accept="image/*">
+      </div>
+
+      <div class="btn-grid" style="margin-bottom: 12px;">
+        <div class="control-group" style="margin-bottom: 0;">
+          <label>Image Fit Mode</label>
+          <select id="param-fit">
+            <option value="cover">Cover (Crop)</option>
+            <option value="contain-smart">Smart Contain (Edge Extend)</option>
+            <option value="contain-pad">Pad (Black Letterbox)</option>
+            <option value="stretch">Stretch (Scale Max)</option>
+          </select>
+        </div>
+        <div class="control-group" style="margin-bottom: 0;">
+          <label>Pixel Chunk Size</label>
+          <select id="param-chunk">
+            <option value="1">1x1 (High-Res)</option>
+            <option value="2">2x2 (Chunky)</option>
+            <option value="4">4x4 (Blocky)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label>Brightness</label>
+        <div class="slider-row">
+          <input type="range" id="param-brightness" min="-100" max="100" value="0">
+          <span class="slider-value" id="val-brightness">0</span>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label>Contrast</label>
+        <div class="slider-row">
+          <input type="range" id="param-contrast" min="-100" max="100" value="0">
+          <span class="slider-value" id="val-contrast">0</span>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <label>Saturation</label>
+        <div class="slider-row">
+          <input type="range" id="param-saturation" min="0" max="200" value="100">
+          <span class="slider-value" id="val-saturation">100</span>
+        </div>
+      </div>
+
+      <div class="switch-container">
+        <span style="font-size: 0.85rem; font-weight: 600; color: var(--muted-text); text-transform: uppercase;">Floyd-Steinberg Dithering</span>
+        <label class="switch">
+          <input type="checkbox" id="param-dither" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="switch-container">
+        <span style="font-size: 0.85rem; font-weight: 600; color: var(--muted-text); text-transform: uppercase;">Print-Ready Monochrome (1-bit)</span>
+        <label class="switch">
+          <input type="checkbox" id="param-monochrome">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="control-group" style="margin-top: 12px;">
+        <label>Export Header Filename (Max 10 Chars)</label>
+        <input type="text" id="tap-filename" maxlength="10" placeholder="e.g. SCREEN" value="SCREEN">
+      </div>
+
+      <div class="btn-grid">
+        <button class="action-btn" onclick="applyImageScaling()">Re-render Image</button>
+        <button class="action-btn secondary-btn" onclick="exportConvertedToTap()">Export SCR .TAP</button>
+      </div>
+    </div>
+
+    <!-- 48k & 128k Sinclair Basic Editor -->
+    <div id="tab-basic" class="card tab-content">
+      <div class="card-title">
+        <span>Sinclair BASIC Editor</span>
+        <span style="font-size: 0.75rem; color: var(--muted-text)">Tape Compiler</span>
+      </div>
+
+      <div class="control-group">
+        <label>Load Example Program</label>
+        <select id="basic-examples" onchange="loadBasicExample()">
+          <option value="">-- Start Blank / Custom --</option>
+          <option value="loader">Standard Screen Loader</option>
+          <option value="hello">Hello World Loop</option>
+          <option value="guess">Number Guesser Game</option>
+          <option value="draw">Random Lines (Screensaver)</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label>Load PHOTO / IMAGE into BASIC Tape</label>
+        <label for="basic-photo-upload" class="upload-btn" style="background-color: #0f766e;">
+          Select PHOTO / IMAGE
+        </label>
+        <input type="file" id="basic-photo-upload" class="file-input" accept="image/*">
+      </div>
+
+      <div class="control-group">
+        <label>Image Fit Mode</label>
+        <select id="basic-fit-mode">
+          <option value="cover">Crop</option>
+          <option value="contain-smart">Smart Contain</option>
+          <option value="contain-pad">Pad</option>
+          <option value="stretch">Stretch</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label>Target Machine</label>
+        <select id="param-basic-mode">
+          <option value="48">ZX Spectrum 48K</option>
+          <option value="128">ZX Spectrum 128K</option>
+          <option value="timex">Timex Sinclair</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label>BASIC Code</label>
+        <textarea id="basic-code" spellcheck="false" placeholder="Type your Sinclair BASIC code here..."></textarea>
+      </div>
+
+      <div class="btn-grid">
+        <div class="control-group" style="margin-bottom: 0;">
+          <label>Autostart Line</label>
+          <input type="number" id="basic-autostart" min="1" max="9999" value="10">
+        </div>
+        <div class="control-group" style="margin-bottom: 0;">
+          <label>Program Name</label>
+          <input type="text" id="basic-filename" maxlength="10" value="" placeholder="Enter Name">
+        </div>
+      </div>
+
+      <div class="switch-container" style="margin-top: 8px;">
+        <span style="font-size: 0.85rem; font-weight: 600; color: var(--muted-text); text-transform: uppercase;">Append Converted Image (Screen$)</span>
+        <label class="switch">
+          <input type="checkbox" id="basic-append-img" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <button class="action-btn" style="margin-top: 12px; background-color: #059669;" onclick="compileBasicToTap()">
+        Compile to .TAP
+      </button>
+
+      <div id="basic-compile-status" class="compile-status-box"></div>
+
+      <div class="info-block">
+        Write native ZX Sinclair BASIC. The compiler tokenizes keywords automatically and builds real native bytecode block payloads. Use the PHOTO / IMAGE button to import a picture, choose a fit mode, and the compiler will inject a Screen$ loader so the emulator shows the picture after loading the BASIC program.
+      </div>
+    </div>
+
+    <!-- Simulate & Play / Export TAP files -->
+    <div id="tab-loader" class="card tab-content">
+      <div class="card-title">
+        <span>Tape Playback Simulator</span>
+        <span style="font-size: 0.75rem; color: var(--muted-text)">Synth Engine</span>
+      </div>
+
+      <div class="control-group">
+        <label>Upload .TAP File (Optional)</label>
+        <label for="tap-upload" class="upload-btn secondary-btn" style="border: 1px solid var(--border-color);">
+          Choose TAP File
+        </label>
+        <input type="file" id="tap-upload" class="file-input" accept=".tap">
+      </div>
+
+      <div class="control-group">
+        <label>Playback & Export Speed</label>
+        <select id="param-speed">
+          <option value="1">Standard (1500 bps)</option>
+          <option value="2">Fast (3000 bps)</option>
+          <option value="4">Turbo (6000 bps)</option>
+        </select>
+      </div>
+
+      <div class="loader-status">
+        <div class="loader-status-row">
+          <span>Tape Status:</span>
+          <span class="status-text" id="tape-status">IDLE</span>
+        </div>
+        <div class="loader-status-row">
+          <span>Block Progress:</span>
+          <span class="status-text" id="tape-bytes">0 / 0 Bytes</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="tape-progress-bar"></div>
+        </div>
+      </div>
+
+      <div class="btn-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+        <button class="action-btn" id="btn-play-tape" onclick="playTapeSimulation()">Play</button>
+        <button class="action-btn secondary-btn" id="btn-pause-tape" onclick="pauseTapeSimulation()">Pause</button>
+        <button class="action-btn secondary-btn" id="btn-stop-tape" onclick="stopTapeSimulation()">Stop</button>
+      </div>
+
+      <button class="action-btn" style="margin-top: 12px; background-color: #059669;" onclick="exportTapeToWav()">
+        Export Current tape to .WAV
+      </button>
+
+      <div class="info-block">
+        Plays standard ZX Spectrum tapes or your converted image with synthetic, real-time edge sounds. Border flashing synchronizes perfectly.
+      </div>
+    </div>
+
+    <!-- Decode Real WAV Tape Inputs -->
+    <div id="tab-decoder" class="card tab-content">
+      <div class="card-title">
+        <span>Real WAV Audio Decoder</span>
+        <span style="font-size: 0.75rem; color: var(--muted-text)">Schmitt Trigger</span>
+      </div>
+
+      <div class="control-group">
+        <label>Upload Tape Audio File (.WAV)</label>
+        <label for="wav-upload" class="upload-btn" style="background-color: #7c3aed;">
+          Upload WAV Tape Audio
+        </label>
+        <input type="file" id="wav-upload" class="file-input" accept="audio/wav, audio/x-wav">
+      </div>
+
+      <div class="loader-status">
+        <div class="loader-status-row">
+          <span>Decoder State:</span>
+          <span class="status-text" id="decode-status">WAITING AUDIO</span>
+        </div>
+        <div class="loader-status-row">
+          <span>Decoded Bytes:</span>
+          <span class="status-text" id="decode-progress">0 / 6912</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="decode-progress-bar"></div>
+        </div>
+        <canvas class="wave-visualizer" id="wave-vis-canvas"></canvas>
+      </div>
+
+      <div class="btn-grid">
+        <button class="action-btn" id="btn-start-decode" onclick="decodeAudioFile()">Analyze &amp; Draw</button>
+        <button class="action-btn secondary-btn" onclick="stopDecodingAudio()">Abort</button>
+      </div>
+
+      <div class="info-block">
+        Uses offline analysis and Schmitt-trigger edge evaluation of genuine audio cassette frequencies (Pilot tone: ~800Hz, Data signals: 1200-2400Hz).
+      </div>
+    </div>
+
+    <!-- Extras / Toys -->
+    <div id="tab-extras" class="card tab-content">
+      <div class="card-title">
+        <span>Extras & Fun</span>
+        <span style="font-size: 0.75rem; color: var(--muted-text)">Toys</span>
+      </div>
+
+      <div class="switch-container" style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 12px;">
+        <span style="font-size: 0.9rem; font-weight: 700; color: var(--text-color);">CRT Tube Overlay Filter</span>
+        <label class="switch">
+          <input type="checkbox" id="toggle-crt-filter" onchange="toggleCrtFilter(this)">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="control-group">
+        <label>1-Bit "Beeper" Soundboard</label>
+        <div class="btn-grid">
+          <button class="action-btn secondary-btn" onclick="playSfxPew()">Pew Pew</button>
+          <button class="action-btn secondary-btn" onclick="playSfxNoise()">Explosion</button>
+        </div>
+      </div>
+
+      <div class="control-group" style="margin-top: 16px;">
+        <label>Screen Scramblers</label>
+        <div class="btn-grid">
+          <button class="action-btn" style="background-color: #d97706;" onclick="generateScreenStatic()">Generate TV Static</button>
+          <button class="action-btn" style="background-color: #dc2626;" onclick="clearSpectrumDisplay()">Clear Screen (Black)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- About / Credits -->
+    <div id="tab-about" class="card tab-content">
+      <div class="card-title">
+        <span>About</span>
+        <span style="font-size: 0.75rem; color: var(--muted-text)">Info & Credits</span>
+      </div>
+      <div class="info-block" style="font-size: 0.9rem; color: var(--text-color);">
+        <h3 style="color: var(--accent-color); margin-bottom: 8px;">ZX Spectrum Mobile Tape & Image Loader</h3>
+        <p>A completely client-side retro-computing tool optimized for mobile browsers.</p>
+        
+        <h4 style="margin-top: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px;">Tech Stack</h4>
+        <p style="margin-top: 8px;">Built entirely with Vanilla HTML5, CSS3, and JavaScript. Zero external libraries. Utilizes the Canvas API for pixel-perfect attribute clash rendering and the Web Audio API for highly accurate cassette tape synthesis and Schmitt-trigger edge-detection decoding.</p>
+
+        <h4 style="margin-top: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px;">Creator</h4>
+        <p style="margin-top: 8px; font-weight: bold; font-size: 1.05rem;">RiziqMaulana</p>
+        <p style="margin-top: 2px; color: var(--muted-text); font-size: 0.85rem;">(AKA CSJArchive, CSJA, and CSJ486 Alternative names)</p>
+
+        <h4 style="margin-top: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px;">Follow me on Social Media</h4>
+        <div class="social-links">
+          <a href="https://www.youtube.com/@csjarchive" target="_blank" class="social-link">
+            <svg viewBox="0 0 24 24"><path fill="#ff0000" d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33 2.78 2.78 0 0 0 1.94 2c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.33z"/><path fill="#fff" d="M9.75 15.02l5.75-3.27-5.75-3.27v6.54z"/></svg>
+            <div class="social-text"><span class="social-title">My YouTube Channels</span><span class="social-handle">m.youtube.com/@csjarchive</span></div>
+          </a>
+          <a href="https://discord.gg/zBqHAFyj2n" target="_blank" class="social-link">
+            <svg viewBox="0 0 24 24"><path fill="#5865F2" d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+            <div class="social-text"><span class="social-title">My Discord Server</span><span class="social-handle">discord.gg/zBqHAFyj2n</span></div>
+          </a>
+          <a href="https://www.deviantart.com/riziqmaulana" target="_blank" class="social-link">
+            <svg viewBox="0 0 24 24"><path fill="#05CC47" d="M19.22 3.19L17.7 5.76h-4.66l-1.63 2.9h6.2l-3.32 5.6h2.7l-4.75 8.16h-4.3l1.52-2.58h4.66l1.64-2.92h-6.2l3.32-5.58h-2.7L14.9 3.18h4.32z"/></svg>
+            <div class="social-text"><span class="social-title">My DeviantArt</span><span class="social-handle">deviantart.com/riziqmaulana</span></div>
+          </a>
+          <a href="https://archive.org/details/@riziq_maulana" target="_blank" class="social-link">
+            <svg viewBox="0 0 24 24"><path fill="#777" d="M4 10h16v2H4zm2 4h2v6H6zm4 0h2v6h-2zm4 0h2v6h-2zM2 22h20v2H2zM12 3 2 8v2h20V8l-10-5z"/></svg>
+            <div class="social-text"><span class="social-title">Internet Archive</span><span class="social-handle">archive.org/details/@riziq_maulana</span></div>
+          </a>
+          <a href="https://x.com/RMaulana52881" target="_blank" class="social-link">
+            <svg viewBox="0 0 24 24"><path fill="currentColor" d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg>
+            <div class="social-text"><span class="social-title">My X (aka Twitter)</span><span class="social-handle">x.com/RMaulana52881</span></div>
+          </a>
+        </div>
+
+        <h4 style="margin-top: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px;">Trademarks & Legal</h4>
+        <p style="margin-top: 8px;">"ZX Spectrum" and "Sinclair" are registered trademarks of Amstrad / Sinclair Research Ltd. This application is an independent fan-made tribute and educational tool, and is not affiliated with, authorized, or endorsed by the trademark owners.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ----------------------------------------------------
+    // CONSTANTS & PALETTE DEFINITIONS
+    // ----------------------------------------------------
+    const SPECTRUM_COLORS = [
+      { r: 0,   g: 0,   b: 0   }, // Black
+      { r: 0,   g: 0,   b: 204 }, // Blue
+      { r: 204, g: 0,   b: 0   }, // Red
+      { r: 204, g: 0,   b: 204 }, // Magenta
+      { r: 0,   g: 204, b: 0   }, // Green
+      { r: 0,   g: 204, b: 204 }, // Cyan
+      { r: 204, g: 204, b: 0   }, // Yellow
+      { r: 204, g: 204, b: 204 }, // White (Normal)
+      { r: 0,   g: 0,   b: 0   }, // Black (Bright)
+      { r: 0,   g: 0,   b: 255 }, // Blue (Bright)
+      { r: 255, g: 0,   b: 0   }, // Red (Bright)
+      { r: 255, g: 0,   b: 255 }, // Magenta (Bright)
+      { r: 0,   g: 255, b: 0   }, // Green (Bright)
+      { r: 0,   g: 255, b: 255 }, // Cyan (Bright)
+      { r: 255, g: 255, b: 0   }, // Yellow (Bright)
+      { r: 255, g: 255, b: 255 }  // White (Bright)
+    ];
+
+    const BORDER_HEX_COLORS = [
+      "#000000", "#0000cc", "#cc0000", "#cc00cc",
+      "#00cc00", "#00cccc", "#cccc00", "#cccccc",
+      "#000000", "#0000ff", "#ff0000", "#ff00ff",
+      "#00ff00", "#00ffff", "#ffff00", "#ffffff"
+    ];
+
+    // Standard ZX Spectrum 48K Basic Tokens 
+    const ZX_TOKENS = {
+      "RND": 0xA5, "INKEY$": 0xA6, "PI": 0xA7, "FN": 0xA8, "POINT": 0xA9, "SCREEN$": 0xAA,
+      "ATTR": 0xAB, "AT": 0xAC, "TAB": 0xAD, "VAL$": 0xAE, "CODE": 0xAF, "VAL": 0xB0,
+      "LEN": 0xB1, "SIN": 0xB2, "COS": 0xB3, "TAN": 0xB4, "ASN": 0xB5, "ACS": 0xB6,
+      "ATN": 0xB7, "LN": 0xB8, "EXP": 0xB9, "INT": 0xBA, "SQR": 0xBB, "SGN": 0xBC,
+      "ABS": 0xBD, "PEEK": 0xBE, "IN": 0xBF, "USR": 0xC0, "STR$": 0xC1, "CHR$": 0xC2,
+      "NOT": 0xC3, "BIN": 0xC4, "OR": 0xC5, "AND": 0xC6, "<=": 0xC7, ">=": 0xC8,
+      "<>": 0xC9, "LINE": 0xCA, "THEN": 0xCB, "TO": 0xCC, "STEP": 0xCD, "DEF FN": 0xCE,
+      "CAT": 0xCF, "FORMAT": 0xD0, "MOVE": 0xD1, "ERASE": 0xD2, "OPEN #": 0xD3,
+      "CLOSE #": 0xD4, "MERGE": 0xD5, "VERIFY": 0xD6, "BEEP": 0xD7, "CIRCLE": 0xD8,
+      "INK": 0xD9, "PAPER": 0xDA, "FLASH": 0xDB, "BRIGHT": 0xDC, "INVERSE": 0xDD,
+      "OVER": 0xDE, "OUT": 0xDF, "LPRINT": 0xE0, "LLIST": 0xE1, "STOP": 0xE2,
+      "READ": 0xE3, "DATA": 0xE4, "RESTORE": 0xE5, "NEW": 0xE6, "BORDER": 0xE7,
+      "CONTINUE": 0xE8, "DIM": 0xE9, "REM": 0xEA, "FOR": 0xEB, "GO TO": 0xEC, "GOTO": 0xEC,
+      "GO SUB": 0xED, "GOSUB": 0xED, "INPUT": 0xEE, "LOAD": 0xEF, "LIST": 0xF0, "LET": 0xF1,
+      "PAUSE": 0xF2, "NEXT": 0xF3, "POKE": 0xF4, "PRINT": 0xF5, "PLOT": 0xF6, "RUN": 0xF7,
+      "SAVE": 0xF8, "RANDOMIZE": 0xF9, "IF": 0xFA, "CLS": 0xFB, "DRAW": 0xFC, "CLEAR": 0xFD,
+      "RETURN": 0xFE, "COPY": 0xFF
+    };
+    const SORTED_TOKENS = Object.keys(ZX_TOKENS).sort((a,b) => b.length - a.length);
+
+    // Basic Code Examples (Optimized standard loader to use empty quotes loader for 100% tape filename compatibility)
+    const BASIC_EXAMPLES = {
+      "loader": '10 BORDER 0: PAPER 0: INK 0: CLEAR 32767\n20 LOAD "" SCREEN$\n30 PAUSE 0\n40 GO TO 10',
+      "hello": '10 BORDER 1: PAPER 1: INK 6: CLS\n20 PRINT "HELLO FROM 1982!"\n30 PAUSE 50\n40 PRINT "HOW ARE YOU?"\n50 GO TO 20',
+      "guess": '10 CLS\n20 LET N=INT (RND*10)+1\n30 PRINT "GUESS A NUMBER 1 TO 10"\n40 INPUT G\n50 IF G=N THEN PRINT "YOU WIN!": STOP\n60 IF G<N THEN PRINT "TOO LOW"\n70 IF G>N THEN PRINT "TOO HIGH"\n80 GO TO 40',
+      "draw": '10 BORDER 0: PAPER 0: CLS\n20 LET X1=INT(RND*255)\n30 LET Y1=INT(RND*175)\n40 LET X2=INT(RND*255)\n50 LET Y2=INT(RND*175)\n60 INK INT(RND*6)+1\n70 PLOT X1,Y1: DRAW X2-X1, Y2-Y1\n80 GO TO 20'
+    };
+
+    // Global variables
+    let globalRawImage = null; 
+    let currentSourceImgData = null; 
+    let spectrumScreenBytes = new Uint8Array(6912); 
+    let currentImageControlSet = 'converter';
+    let basicPhotoImageLoaded = false;
+
+    // Canvas pointers
+    const canvas = document.getElementById('spectrum-canvas');
+    const ctx = canvas.getContext('2d');
+    const borderViewport = document.getElementById('border-viewport');
+
+    // Init display
+    clearSpectrumDisplay();
+
+    // Setup input listeners
+    document.getElementById('img-upload').addEventListener('change', handleImageUpload);
+    document.getElementById('basic-photo-upload').addEventListener('change', handleBasicPhotoUpload);
+    document.getElementById('tap-upload').addEventListener('change', handleTapUpload);
+    document.getElementById('param-fit').addEventListener('change', () => applyImageScaling('converter'));
+    document.getElementById('basic-fit-mode').addEventListener('change', () => applyImageScaling('basic'));
+    document.getElementById('param-chunk').addEventListener('change', () => applyImageScaling());
+
+    // Zoom Canvas Listener
+    document.getElementById('param-display-scale').addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (val === 'auto') {
+        canvas.style.width = '100%';
+        canvas.style.height = 'auto';
+        canvas.style.maxWidth = '100%';
+      } else {
+        const mult = parseInt(val);
+        canvas.style.width = (256 * mult) + 'px';
+        canvas.style.height = (192 * mult) + 'px';
+        canvas.style.maxWidth = 'none';
+      }
+    });
+
+    // Track slider displays
+    const sliders = ['brightness', 'contrast', 'saturation'];
+    sliders.forEach(id => {
+      const input = document.getElementById(`param-${id}`);
+      const val = document.getElementById(`val-${id}`);
+      input.addEventListener('input', () => {
+        val.textContent = input.value;
+      });
+    });
+
+    // Filename uppercase enforcers
+    document.getElementById('tap-filename').addEventListener('input', (e) => {
+      e.target.value = e.target.value.toUpperCase();
+    });
+    document.getElementById('basic-filename').addEventListener('input', (e) => {
+      e.target.value = e.target.value.toUpperCase();
+    });
+
+    // Tap Handling globals
+    let activeTapeBlocks = []; 
+    let currentTapFilename = "";
+
+    // Simulator runtime variables
+    let simulatorAudioCtx = null;
+    let simulatorPlayState = 'idle'; 
+    let simBlockIndex = 0;
+    let simByteIndex = 0;
+    let simInPilot = true;
+    let simTimerId = null;
+    let simPilotPulseCount = 0;
+    let simAccumulatedTime = 0;
+
+    // Constants for hardware emulated sound loops (T-state based audio)
+    const T_STATES_PER_SECOND = 3500000;
+    const PILOT_PULSE_TSTATES = 2168;
+    const FIRST_SYNC_PULSE_TSTATES = 667;
+    const SECOND_SYNC_PULSE_TSTATES = 735;
+    const ZERO_BIT_PULSE_TSTATES = 855;
+    const ONE_BIT_PULSE_TSTATES = 1710;
+
+    // ----------------------------------------------------
+    // 1. TABS MANAGEMENT
+    // ----------------------------------------------------
+    function switchTab(btnElement, tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      
+      btnElement.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+
+      if (tabId === 'tab-converter') {
+        renderScrBufferToCanvas();
+      }
+    }
+
+    // Load Basic Examples
+    function loadBasicExample() {
+      const val = document.getElementById('basic-examples').value;
+      const textArea = document.getElementById('basic-code');
+      if (val && BASIC_EXAMPLES[val]) {
+        textArea.value = BASIC_EXAMPLES[val];
+      } else {
+        textArea.value = "";
+      }
+    }
+
+    // ----------------------------------------------------
+    // 2. VIDEO EMULATION RENDERING
+    // ----------------------------------------------------
+    function clearSpectrumDisplay() {
+      for (let i = 0; i < 6144; i++) {
+        spectrumScreenBytes[i] = 0;
+      }
+      for (let i = 0; i < 768; i++) {
+        spectrumScreenBytes[6144 + i] = 56; // Standard grey paper, black ink
+      }
+      renderScrBufferToCanvas();
+    }
+
+    function renderScrBufferToCanvas() {
+      const imgData = ctx.createImageData(256, 192);
+      const data = imgData.data;
+
+      for (let y = 0; y < 192; y++) {
+        const third = Math.floor(y / 64);
+        const line = y % 8;
+        const offset = Math.floor((y % 64) / 8);
+        const pixelAddressOffset = (third * 2048) + (line * 256) + (offset * 32);
+
+        const attrRow = Math.floor(y / 8);
+
+        for (let xByte = 0; xByte < 32; xByte++) {
+          const pixelByte = spectrumScreenBytes[pixelAddressOffset + xByte];
+          const attrByte = spectrumScreenBytes[6144 + (attrRow * 32) + xByte];
+
+          const bright = (attrByte & 0x40) !== 0;
+          const paperIdx = (attrByte & 0x38) >> 3;
+          const inkIdx = attrByte & 0x07;
+
+          const colorBase = bright ? 8 : 0;
+          const inkColor = SPECTRUM_COLORS[colorBase + inkIdx];
+          const paperColor = SPECTRUM_COLORS[colorBase + paperIdx];
+
+          for (let bit = 0; bit < 8; bit++) {
+            const pixelX = (xByte * 8) + bit;
+            const pixelOn = (pixelByte & (0x80 >> bit)) !== 0;
+            const activeColor = pixelOn ? inkColor : paperColor;
+
+            const canvasIdx = ((y * 256) + pixelX) * 4;
+            data[canvasIdx] = activeColor.r;
+            data[canvasIdx + 1] = activeColor.g;
+            data[canvasIdx + 2] = activeColor.b;
+            data[canvasIdx + 3] = 255;
+          }
+        }
+      }
+      ctx.putImageData(imgData, 0, 0);
+    }
+
+    function renderLineProgress(loadedBytes) {
+      if (loadedBytes > 6144) {
+        renderScrBufferToCanvas();
+        return;
+      }
+      const imgData = ctx.getImageData(0,0,256,192);
+      const data = imgData.data;
+
+      for (let byteOffset = 0; byteOffset < 6144; byteOffset++) {
+        if (byteOffset >= loadedBytes) break;
+
+        const third = Math.floor(byteOffset / 2048);
+        const line = Math.floor((byteOffset % 2048) / 256);
+        const offset = Math.floor((byteOffset % 256) / 32);
+        const y = (third * 64) + (offset * 8) + line;
+
+        const xByte = byteOffset % 32;
+        const pixelByte = spectrumScreenBytes[byteOffset];
+
+        const attrRow = Math.floor(y / 8);
+        const attrByte = spectrumScreenBytes[6144 + (attrRow * 32) + xByte];
+        const bright = (attrByte & 0x40) !== 0;
+        const paperIdx = (attrByte & 0x38) >> 3;
+        const inkIdx = attrByte & 0x07;
+
+        const colorBase = bright ? 8 : 0;
+        const inkColor = SPECTRUM_COLORS[colorBase + inkIdx];
+        const paperColor = SPECTRUM_COLORS[colorBase + paperIdx];
+
+        for (let bit = 0; bit < 8; bit++) {
+          const pixelX = (xByte * 8) + bit;
+          const pixelOn = (pixelByte & (0x80 >> bit)) !== 0;
+          const activeColor = pixelOn ? inkColor : paperColor;
+
+          const canvasIdx = ((y * 256) + pixelX) * 4;
+          data[canvasIdx] = activeColor.r;
+          data[canvasIdx + 1] = activeColor.g;
+          data[canvasIdx + 2] = activeColor.b;
+          data[canvasIdx + 3] = 255;
+        }
+      }
+      ctx.putImageData(imgData, 0, 0);
+    }
+
+    // ----------------------------------------------------
+    // 3. IMAGE SPECTRUMIZER CORE ALGORITHM
+    // ----------------------------------------------------
+    function loadImageFile(file, onReady, controlSet = 'converter') {
+      if (!file) return;
+      currentImageControlSet = controlSet;
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        globalRawImage = new Image();
+        globalRawImage.onload = function() {
+          if (typeof onReady === 'function') onReady(file);
+          applyImageScaling(controlSet);
+        };
+        globalRawImage.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleImageUpload(e) {
+      const file = e.target.files[0];
+      basicPhotoImageLoaded = false;
+      loadImageFile(file, null, 'converter');
+    }
+
+    function handleBasicPhotoUpload(e) {
+      const file = e.target.files[0];
+      loadImageFile(file, (pickedFile) => {
+        basicPhotoImageLoaded = true;
+        const appendImg = document.getElementById('basic-append-img');
+        appendImg.checked = true;
+
+        const tapName = document.getElementById('tap-filename');
+        const baseName = (pickedFile.name || 'PHOTO')
+          .replace(/\.[^.]+$/, '')
+          .replace(/[^A-Z0-9]/gi, '')
+          .substring(0, 10)
+          .toUpperCase() || 'PHOTO';
+        tapName.value = baseName;
+
+        const basicCode = document.getElementById('basic-code');
+        if (!basicCode.value.trim()) {
+          basicCode.value = '10 BORDER 0: PAPER 0: INK 7: CLS\n20 LOAD "" SCREEN$\n30 PAUSE 0\n40 GO TO 20';
+        }
+
+        document.getElementById('basic-examples').value = '';
+      }, 'basic');
+    }
+
+    function applyImageScaling(controlSet = currentImageControlSet) {
+      if (!globalRawImage) return;
+
+      const fitMode = document.getElementById(controlSet === 'basic' ? 'basic-fit-mode' : 'param-fit').value;
+      const chunk = parseInt(document.getElementById('param-chunk').value);
+      const renderW = 256 / chunk;
+      const renderH = 192 / chunk;
+
+      const offscreenCanvas = document.createElement('canvas');
+      offscreenCanvas.width = renderW;
+      offscreenCanvas.height = renderH;
+      const oCtx = offscreenCanvas.getContext('2d', { willReadFrequently: true });
+      
+      let scale;
+      let dx = 0, dy = 0, dw = renderW, dh = renderH;
+
+      if (fitMode === 'cover') {
+        scale = Math.max(renderW / globalRawImage.width, renderH / globalRawImage.height);
+        dw = Math.floor(globalRawImage.width * scale);
+        dh = Math.floor(globalRawImage.height * scale);
+        dx = Math.floor((renderW - dw) / 2);
+        dy = Math.floor((renderH - dh) / 2);
+      } else if (fitMode === 'contain-smart' || fitMode === 'contain-pad') {
+        scale = Math.min(renderW / globalRawImage.width, renderH / globalRawImage.height);
+        dw = Math.floor(globalRawImage.width * scale);
+        dh = Math.floor(globalRawImage.height * scale);
+        dx = Math.floor((renderW - dw) / 2);
+        dy = Math.floor((renderH - dh) / 2);
+      } else if (fitMode === 'stretch') {
+        dx = 0; dy = 0; dw = renderW; dh = renderH;
+      }
+
+      oCtx.fillStyle = "#000";
+      oCtx.fillRect(0, 0, renderW, renderH);
+      oCtx.drawImage(globalRawImage, dx, dy, dw, dh);
+
+      if (fitMode === 'contain-smart') {
+        if (dx > 0) {
+          oCtx.drawImage(offscreenCanvas, dx, dy, 1, dh, 0, dy, dx, dh);
+          oCtx.drawImage(offscreenCanvas, dx + dw - 1, dy, 1, dh, dx + dw, dy, dx, dh);
+        }
+        if (dy > 0) {
+          oCtx.drawImage(offscreenCanvas, 0, dy, renderW, 1, 0, 0, renderW, dy);
+          oCtx.drawImage(offscreenCanvas, 0, dy + dh - 1, renderW, 1, 0, dy + dh, renderW, dy);
+        }
+      }
+
+      const finalCanvas = document.createElement('canvas');
+      finalCanvas.width = 256;
+      finalCanvas.height = 192;
+      const fCtx = finalCanvas.getContext('2d', { willReadFrequently: true });
+      fCtx.imageSmoothingEnabled = false;
+      fCtx.drawImage(offscreenCanvas, 0, 0, 256, 192);
+
+      currentSourceImgData = fCtx.getImageData(0, 0, 256, 192);
+      processDitheredSpectrumImage();
+    }
+
+    function processDitheredSpectrumImage() {
+      if (!currentSourceImgData) return;
+
+      const ditherEnabled = document.getElementById('param-dither').checked;
+      const isMonochrome = document.getElementById('param-monochrome').checked;
+      const brightnessVal = parseInt(document.getElementById('param-brightness').value);
+      const contrastVal = parseInt(document.getElementById('param-contrast').value);
+      const saturationVal = parseInt(document.getElementById('param-saturation').value) / 100;
+
+      const workingData = new Uint8ClampedArray(currentSourceImgData.data);
+      const bFactor = (brightnessVal / 100) * 255;
+      const cFactor = (contrastVal + 100) / 100;
+
+      for (let i = 0; i < workingData.length; i += 4) {
+        let r = workingData[i];
+        let g = workingData[i + 1];
+        let b = workingData[i + 2];
+
+        r = (r + bFactor - 128) * cFactor + 128;
+        g = (g + bFactor - 128) * cFactor + 128;
+        b = (b + bFactor - 128) * cFactor + 128;
+
+        const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+        workingData[i] = Math.min(255, Math.max(0, lum + (r - lum) * saturationVal));
+        workingData[i + 1] = Math.min(255, Math.max(0, lum + (g - lum) * saturationVal));
+        workingData[i + 2] = Math.min(255, Math.max(0, lum + (b - lum) * saturationVal));
+      }
+
+      for (let cellY = 0; cellY < 24; cellY++) {
+        for (let cellX = 0; cellX < 32; cellX++) {
+          process8x8Cell(workingData, cellX, cellY, ditherEnabled, isMonochrome);
+        }
+      }
+
+      renderScrBufferToCanvas();
+    }
+
+    function colorDistance(r1, g1, b1, r2, g2, b2) {
+      return 2 * Math.pow(r1 - r2, 2) + 4 * Math.pow(g1 - g2, 2) + 3 * Math.pow(b1 - b2, 2);
+    }
+
+    function process8x8Cell(pixelArray, cellX, cellY, dither, isMonochrome) {
+      const pixels = [];
+      let totalLuminosity = 0;
+
+      for (let y = 0; y < 8; y++) {
+        const absY = cellY * 8 + y;
+        for (let x = 0; x < 8; x++) {
+          const absX = cellX * 8 + x;
+          const idx = (absY * 256 + absX) * 4;
+          const r = pixelArray[idx], g = pixelArray[idx + 1], b = pixelArray[idx + 2];
+          pixels.push({ r, g, b, idx, localX: x, localY: y });
+          totalLuminosity += (0.299 * r + 0.587 * g + 0.114 * b);
+        }
+      }
+
+      const avgLum = totalLuminosity / 64;
+      const isBright = avgLum > 90;
+      let paperIdx, inkIdx;
+
+      if (isMonochrome) {
+        paperIdx = 7; 
+        inkIdx = 0;
+        spectrumScreenBytes[6144 + (cellY * 32) + cellX] = 0x40 | (7 << 3) | 0;
+      } else {
+        const paletteOffset = isBright ? 8 : 0;
+        const localPalette = [];
+        for (let i = 0; i < 8; i++) localPalette.push({ id: i, color: SPECTRUM_COLORS[paletteOffset + i] });
+
+        const colorCounts = new Array(8).fill(0);
+        pixels.forEach(p => {
+          let bestDist = Infinity, bestIdx = 0;
+          for (let i = 0; i < 8; i++) {
+            const sc = localPalette[i].color;
+            const d = colorDistance(p.r, p.g, p.b, sc.r, sc.g, sc.b);
+            if (d < bestDist) { bestDist = d; bestIdx = i; }
+          }
+          colorCounts[bestIdx]++;
+        });
+
+        let maxCount = -1;
+        for (let i = 0; i < 8; i++) {
+          if (colorCounts[i] > maxCount) { maxCount = colorCounts[i]; paperIdx = i; }
+        }
+
+        let nextMaxCount = -1; inkIdx = -1;
+        for (let i = 0; i < 8; i++) {
+          if (i === paperIdx) continue;
+          if (colorCounts[i] > nextMaxCount) { nextMaxCount = colorCounts[i]; inkIdx = i; }
+        }
+
+        if (inkIdx === -1) inkIdx = (paperIdx === 0) ? 7 : 0;
+        
+        spectrumScreenBytes[6144 + (cellY * 32) + cellX] = (isBright ? 0x40 : 0x00) | (paperIdx << 3) | inkIdx;
+      }
+
+      const paletteOffset = (isMonochrome || isBright) ? 8 : 0;
+      const cPaper = SPECTRUM_COLORS[paletteOffset + paperIdx];
+      const cInk = SPECTRUM_COLORS[paletteOffset + inkIdx];
+
+      const localPixelsGrid = Array.from({ length: 8 }, () => new Array(8));
+      pixels.forEach(p => localPixelsGrid[p.localY][p.localX] = p);
+
+      for (let y = 0; y < 8; y++) {
+        const absY = cellY * 8 + y;
+        let lineByte = 0;
+
+        for (let x = 0; x < 8; x++) {
+          const absX = cellX * 8 + x;
+          const p = localPixelsGrid[y][x];
+
+          const dPaper = colorDistance(p.r, p.g, p.b, cPaper.r, cPaper.g, cPaper.b);
+          const dInk = colorDistance(p.r, p.g, p.b, cInk.r, cInk.g, cInk.b);
+
+          const isInk = dInk < dPaper;
+          const finalColor = isInk ? cInk : cPaper;
+
+          if (isInk) lineByte |= (0x80 >> x);
+
+          if (dither) {
+            const errR = p.r - finalColor.r;
+            const errG = p.g - finalColor.g;
+            const errB = p.b - finalColor.b;
+
+            distributeError(pixelArray, absX + 1, absY,     errR, errG, errB, 7 / 16);
+            distributeError(pixelArray, absX - 1, absY + 1, errR, errG, errB, 3 / 16);
+            distributeError(pixelArray, absX,     absY + 1, errR, errG, errB, 5 / 16);
+            distributeError(pixelArray, absX + 1, absY + 1, errR, errG, errB, 1 / 16);
+          }
+        }
+
+        const third = Math.floor(absY / 64);
+        const line = absY % 8;
+        const offset = Math.floor((absY % 64) / 8);
+        const pixelAddressOffset = (third * 2048) + (line * 256) + (offset * 32);
+        
+        spectrumScreenBytes[pixelAddressOffset + cellX] = lineByte;
+      }
+    }
+
+    function distributeError(arr, x, y, errR, errG, errB, weight) {
+      if (x < 0 || x >= 256 || y < 0 || y >= 192) return;
+      const idx = (y * 256 + x) * 4;
+      arr[idx]     = Math.min(255, Math.max(0, arr[idx]     + errR * weight));
+      arr[idx + 1] = Math.min(255, Math.max(0, arr[idx + 1] + errG * weight));
+      arr[idx + 2] = Math.min(255, Math.max(0, arr[idx + 2] + errB * weight));
+    }
+
+    // ----------------------------------------------------
+    // 4. BASIC EDITOR & COMPILER (TOKENIZER)
+    // ----------------------------------------------------
+    function tokenizeBasicLine(lineNum, text) {
+      let out = [];
+      out.push(lineNum >> 8);
+      out.push(lineNum & 0xFF);
+
+      let lineLenIdx = out.length;
+      out.push(0); 
+      out.push(0);
+
+      let i = 0;
+      let inString = false;
+
+      while (i < text.length) {
+        if (text[i] === '"') {
+          inString = !inString;
+          out.push(text.charCodeAt(i));
+          i++;
+          continue;
+        }
+
+        if (!inString) {
+          let matchedToken = false;
+          let testSub = text.substring(i).toUpperCase();
+          for (let tk of SORTED_TOKENS) {
+            if (testSub.startsWith(tk)) {
+              out.push(ZX_TOKENS[tk]);
+              i += tk.length;
+              matchedToken = true;
+              break;
+            }
+          }
+          if (matchedToken) continue;
+
+          let numMatch = text.substring(i).match(/^(\d+)/);
+          if (numMatch) {
+            let numStr = numMatch[1];
+            for (let c=0; c < numStr.length; c++) {
+              out.push(numStr.charCodeAt(c));
+            }
+            let val = parseInt(numStr, 10);
+            if (val <= 65535) {
+              out.push(0x0E, 0x00, 0x00, val & 0xFF, (val >> 8) & 0xFF, 0x00);
+            }
+            i += numStr.length;
+            continue;
+          }
+        }
+
+        out.push(text.charCodeAt(i));
+        i++;
+      }
+
+      out.push(0x0D); 
+
+      let len = out.length - lineLenIdx - 2;
+      out[lineLenIdx] = len & 0xFF;       
+      out[lineLenIdx + 1] = (len >> 8) & 0xFF; 
+
+      return out;
+    }
+
+    function calculateChecksum(arr, startIdx, length) {
+      let cs = 0;
+      for (let i = 0; i < length; i++) {
+        cs ^= arr[startIdx + i];
+      }
+      return cs;
+    }
+
+    function showCompileStatus(message, isError) {
+      const statusBox = document.getElementById('basic-compile-status');
+      statusBox.textContent = message;
+      statusBox.className = 'compile-status-box ' + (isError ? 'compile-status-error' : 'compile-status-success');
+      statusBox.style.display = 'block';
+      setTimeout(() => {
+        statusBox.style.display = 'none';
+      }, 5000);
+    }
+
+    function compileBasicToTap() {
+      const codeLines = document.getElementById('basic-code').value.split('\n');
+      const parsedLines = [];
+
+      for (let line of codeLines) {
+        line = line.trim();
+        if (!line) continue;
+
+        let match = line.match(/^(\d+)\s+(.*)/);
+        if (match) {
+          parsedLines.push({
+            num: parseInt(match[1], 10),
+            text: match[2]
+          });
+        }
+      }
+
+      if (parsedLines.length === 0) {
+        showCompileStatus("Error: No valid BASIC code found. Start lines with numbers.", true);
+        return;
+      }
+
+      // Automatically allow appending converted image if any raw image was ever uploaded
+      const wantsImage = document.getElementById('basic-append-img').checked && globalRawImage !== null;
+      
+      // Robust Regex to match any Screen$ loader statement (LOAD "SCREEN" SCREEN$, LOAD "" SCREEN$, etc.)
+      const hasScreenLoader = parsedLines.some(line => /LOAD\s+("[^"]*")?\s*SCREEN\$/i.test(line.text));
+
+      let prependedLine = false;
+      if (wantsImage && !hasScreenLoader) {
+        const firstLine = parsedLines.find(line => line.num === 1);
+        if (firstLine) {
+          firstLine.text = `LOAD "" SCREEN$: ${firstLine.text}`;
+        } else {
+          parsedLines.unshift({ num: 1, text: 'LOAD "" SCREEN$' });
+        }
+        prependedLine = true;
+      }
+
+      // Sort parsed lines to compile linearly
+      const compileLines = parsedLines
+        .sort((a, b) => a.num - b.num)
+        .map(line => `${line.num} ${line.text}`);
+
+      let compiledBasicBytes = [];
+      for (let line of compileLines) {
+        let match = line.match(/^(\d+)\s+(.*)/);
+        if (match) {
+          let lineNum = parseInt(match[1]);
+          let text = match[2];
+          let tokens = tokenizeBasicLine(lineNum, text);
+          compiledBasicBytes = compiledBasicBytes.concat(tokens);
+        }
+      }
+
+      // Autostart determination: use user custom choice or default to first compiled line
+      let autostart = parseInt(document.getElementById('basic-autostart').value);
+      if (isNaN(autostart)) {
+        autostart = parsedLines.length > 0 ? parsedLines[0].num : 10;
+      }
+
+      if (prependedLine) {
+        autostart = 1;
+        document.getElementById('basic-autostart').value = '1';
+      } else if (autostart > 9999) {
+        autostart = 32768; // Standard Sinclair signal for "No autostart"
+      }
+
+      let filename = document.getElementById('basic-filename').value.trim();
+      if (!filename) {
+        showCompileStatus("Error: Program Name cannot be blank. Please enter a name.", true);
+        return;
+      }
+      filename = filename.padEnd(10, ' ').substring(0, 10).toUpperCase();
+
+      const progHeader = new Uint8Array(21);
+      progHeader[0] = 19; progHeader[1] = 0;
+      progHeader[2] = 0;
+      progHeader[3] = 0;
+      for (let i = 0; i < 10; i++) progHeader[4 + i] = filename.charCodeAt(i);
+
+      let progLen = compiledBasicBytes.length;
+      progHeader[14] = progLen & 0xFF; progHeader[15] = (progLen >> 8) & 0xFF;
+      progHeader[16] = autostart & 0xFF; progHeader[17] = (autostart >> 8) & 0xFF;
+      progHeader[18] = progLen & 0xFF; progHeader[19] = (progLen >> 8) & 0xFF;
+
+      progHeader[20] = calculateChecksum(progHeader, 2, 18);
+
+      const progDataLen = progLen + 2;
+      const progData = new Uint8Array(2 + progDataLen);
+      progData[0] = progDataLen & 0xFF; progData[1] = (progDataLen >> 8) & 0xFF;
+      progData[2] = 0xFF;
+      for (let i = 0; i < progLen; i++) {
+        progData[3 + i] = compiledBasicBytes[i];
+      }
+      progData[3 + progLen] = calculateChecksum(progData, 2, progLen + 1);
+
+      // --- Swapped Output Order Logic ---
+      let finalTapFiles = [];
+
+      if (wantsImage) {
+        // Automatically extract target filename specified in the Sinclair BASIC code
+        let imgName = "SCREEN";
+        const nameMatch = document.getElementById('basic-code').value.match(/LOAD\s+"([^"]*)"\s*SCREEN\$/i);
+        if (nameMatch && nameMatch[1].trim() !== "") {
+          imgName = nameMatch[1].trim();
+        } else {
+          imgName = document.getElementById('tap-filename').value.trim() || "SCREEN";
+        }
+        imgName = imgName.padEnd(10, ' ').substring(0, 10).toUpperCase();
+
+        const imgHeader = new Uint8Array(21);
+        imgHeader[0] = 19; imgHeader[1] = 0;
+        imgHeader[2] = 0;
+        imgHeader[3] = 3; // Block Type: 3 (Bytes)
+        for (let i = 0; i < 10; i++) imgHeader[4 + i] = imgName.charCodeAt(i);
+        imgHeader[14] = 0x00; imgHeader[15] = 0x1b; // 6912 Bytes Length
+        imgHeader[16] = 0x00; imgHeader[17] = 0x40; // 16384 Start (Screen RAM)
+        imgHeader[18] = 0x00; imgHeader[19] = 0x80; // Unused parameter
+        imgHeader[20] = calculateChecksum(imgHeader, 2, 18);
+
+        const imgData = new Uint8Array(6916);
+        imgData[0] = 0x02; imgData[1] = 0x1b; // Block size prefix
+        imgData[2] = 0xFF; // Data Flag Byte
+        for (let i = 0; i < 6912; i++) imgData[3 + i] = spectrumScreenBytes[i];
+        imgData[6915] = calculateChecksum(imgData, 2, 6913);
+
+        // Push Image blocks FIRST (Blocks 1 and 2)
+        finalTapFiles.push(imgHeader, imgData);
+      }
+
+      // Push Program blocks SECOND (Blocks 3 and 4)
+      finalTapFiles.push(progHeader, progData);
+
+      let totalSize = finalTapFiles.reduce((acc, val) => acc + val.length, 0);
+      let combined = new Uint8Array(totalSize);
+      let offset = 0;
+      for (let arr of finalTapFiles) {
+        combined.set(arr, offset);
+        offset += arr.length;
+      }
+
+      const blob = new Blob([combined], {type: "application/octet-stream"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${filename.trim()}.tap`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      showCompileStatus(`Compiled successfully! Autostart at line ${autostart}.`, false);
+    }
+
+
+    // ----------------------------------------------------
+    // 5. TAP TAPE FILE GENERATION (SCREEN ONLY EXPORT)
+    // ----------------------------------------------------
+    function getCleanFilename(inputId) {
+      let f = document.getElementById(inputId).value.trim();
+      if (!f) f = "SCREEN";
+      return f.padEnd(10, ' ').substring(0, 10).toUpperCase();
+    }
+
+    function exportConvertedToTap() {
+      const header = new Uint8Array(21);
+      header[0] = 19; header[1] = 0;
+      header[2] = 0; 
+      header[3] = 3; 
+      
+      const name = getCleanFilename('tap-filename');
+      for (let i = 0; i < 10; i++) header[4 + i] = name.charCodeAt(i);
+      
+      header[14] = 0x00; header[15] = 0x1b; 
+      header[16] = 0x00; header[17] = 0x40; 
+      header[18] = 0x00; header[19] = 0x80;
+      
+      header[20] = calculateChecksum(header, 2, 18);
+
+      const data = new Uint8Array(6916);
+      data[0] = 0x02; data[1] = 0x1b; 
+      data[2] = 0xff; 
+      for (let i = 0; i < 6912; i++) data[3 + i] = spectrumScreenBytes[i];
+      data[6915] = calculateChecksum(data, 2, 6913);
+
+      const tapFile = new Uint8Array(header.length + data.length);
+      tapFile.set(header, 0);
+      tapFile.set(data, header.length);
+
+      const blob = new Blob([tapFile], {type: "application/octet-stream"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${name.trim()}.tap`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // ----------------------------------------------------
+    // 6. CASSETTE LOADER SIMULATOR & AUDIO SYNTH ENGINE
+    // ----------------------------------------------------
+    function handleTapUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      currentTapFilename = file.name;
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        parseTapBytes(new Uint8Array(event.target.result));
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function parseTapBytes(tapData) {
+      activeTapeBlocks = [];
+      let offset = 0;
+
+      while (offset < tapData.length) {
+        if (offset + 2 > tapData.length) break;
+        const blockSize = tapData[offset] | (tapData[offset + 1] << 8);
+        offset += 2;
+
+        if (offset + blockSize > tapData.length) break;
+        const rawBlock = tapData.subarray(offset, offset + blockSize);
+        
+        const flagByte = rawBlock[0];
+        let desc = "Data Block";
+        if (flagByte === 0) {
+          desc = "Header Block";
+          if (rawBlock[1] === 0) desc += " (Program)";
+          else if (rawBlock[1] === 3) desc += " (Bytes)";
+        }
+
+        activeTapeBlocks.push({
+          data: new Uint8Array(rawBlock),
+          type: flagByte,
+          description: desc,
+          size: blockSize
+        });
+
+        offset += blockSize;
+      }
+
+      const status = document.getElementById('tape-status');
+      status.textContent = `Loaded ${activeTapeBlocks.length} Blocks`;
+      
+      const screenBlock = activeTapeBlocks.find(b => b.size === 6914);
+      if (screenBlock) {
+        status.textContent += " (Screen$ Found)";
+        clearSpectrumDisplay();
+      }
+    }
+
+    function initSimulatorAudioContext() {
+      if (!simulatorAudioCtx) {
+        simulatorAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (simulatorAudioCtx.state === 'suspended') {
+        simulatorAudioCtx.resume();
+      }
+    }
+
+    function stopTapeSimulation() {
+      if (simTimerId) clearTimeout(simTimerId);
+      simTimerId = null;
+      simulatorPlayState = 'stopped';
+      document.getElementById('tape-status').textContent = "STOPPED";
+      borderViewport.style.backgroundColor = BORDER_HEX_COLORS[7];
+    }
+
+    function pauseTapeSimulation() {
+      if (simTimerId) clearTimeout(simTimerId);
+      simTimerId = null;
+      simulatorPlayState = 'paused';
+      document.getElementById('tape-status').textContent = "PAUSED";
+    }
+
+    function playTapeSimulation() {
+      initSimulatorAudioContext();
+      if (activeTapeBlocks.length === 0) generateTapeFromCurrentImage();
+      if (simulatorPlayState === 'playing') return;
+
+      simulatorPlayState = 'playing';
+      document.getElementById('tape-status').textContent = "LOADING...";
+      
+      simBlockIndex = 0;
+      simByteIndex = 0;
+      simInPilot = true;
+      simPilotPulseCount = 0;
+      simAccumulatedTime = simulatorAudioCtx.currentTime;
+
+      runSimulatorTick();
+    }
+
+    function generateTapeFromCurrentImage() {
+      activeTapeBlocks = [];
+      const header = new Uint8Array(19);
+      header[0] = 0x00; 
+      header[1] = 0x03; 
+      const name = getCleanFilename('tap-filename');
+      for (let i = 0; i < 10; i++) header[2 + i] = name.charCodeAt(i);
+      header[12] = 0x00; header[13] = 0x1b; 
+      header[14] = 0x00; header[15] = 0x40; 
+      activeTapeBlocks.push({ data: header, type: 0, description: "Header Block", size: 19 });
+
+      const data = new Uint8Array(6914);
+      data[0] = 0xff; 
+      for (let i = 0; i < 6912; i++) data[1 + i] = spectrumScreenBytes[i];
+      activeTapeBlocks.push({ data: data, type: 255, description: "Screen$ Data", size: 6914 });
+    }
+
+    function runSimulatorTick() {
+      if (simulatorPlayState !== 'playing') return;
+
+      if (simBlockIndex >= activeTapeBlocks.length) {
+        stopTapeSimulation();
+        document.getElementById('tape-status').textContent = "LOAD COMPLETE";
+        renderScrBufferToCanvas();
+        return;
+      }
+
+      const activeBlock = activeTapeBlocks[simBlockIndex];
+      const targetElement = document.getElementById('tape-bytes');
+      const lookahead = 0.15;
+      const audioLimit = simulatorAudioCtx.currentTime + lookahead;
+      const speedMult = parseFloat(document.getElementById('param-speed').value);
+
+      if (activeBlock.type === 255) {
+        targetElement.textContent = `Data Block: ${simByteIndex} / ${activeBlock.size - 2} Bytes`;
+        const percentage = (simByteIndex / (activeBlock.size - 2)) * 100;
+        document.getElementById('tape-progress-bar').style.width = `${percentage}%`;
+      } else {
+        targetElement.textContent = `${activeBlock.description}: ${simByteIndex} / ${activeBlock.size} Bytes`;
+        document.getElementById('tape-progress-bar').style.width = `0%`;
+      }
+
+      while (simAccumulatedTime < audioLimit) {
+        if (simInPilot) {
+          const limit = (activeBlock.type === 0) ? 4000 : 1500;
+          if (simPilotPulseCount < limit) {
+            queuePulse(PILOT_PULSE_TSTATES, speedMult);
+            simPilotPulseCount++;
+
+            const colorIdx = (simPilotPulseCount % 2 === 0) ? 1 : 6;
+            scheduleBorderColor(colorIdx, simAccumulatedTime);
+          } else {
+            queuePulse(FIRST_SYNC_PULSE_TSTATES, speedMult);
+            queuePulse(SECOND_SYNC_PULSE_TSTATES, speedMult);
+            simInPilot = false;
+            simByteIndex = 0;
+            if (activeBlock.type === 255 && activeBlock.size === 6914) clearSpectrumDisplay();
+          }
+        } else {
+          if (simByteIndex < activeBlock.data.length) {
+            const byteVal = activeBlock.data[simByteIndex];
+            
+            // Draw bytes live ONLY if it's the exact standard Screen$ size (6912 body)
+            if (activeBlock.type === 255 && activeBlock.size === 6914 && simByteIndex > 0 && simByteIndex <= 6912) {
+              spectrumScreenBytes[simByteIndex - 1] = byteVal;
+              if (simByteIndex % 32 === 0) renderLineProgress(simByteIndex);
+            }
+
+            for (let bit = 7; bit >= 0; bit--) {
+              const isOne = (byteVal & (1 << bit)) !== 0;
+              const period = isOne ? ONE_BIT_PULSE_TSTATES : ZERO_BIT_PULSE_TSTATES;
+              queuePulse(period, speedMult);
+              queuePulse(period, speedMult);
+            }
+
+            const flashColor = (simByteIndex % 2 === 0) ? 2 : 5;
+            scheduleBorderColor(flashColor, simAccumulatedTime);
+            simByteIndex++;
+          } else {
+            simBlockIndex++;
+            simInPilot = true;
+            simPilotPulseCount = 0;
+            simAccumulatedTime += (1.0 / speedMult); 
+            break;
+          }
+        }
+      }
+      simTimerId = setTimeout(runSimulatorTick, 40);
+    }
+
+    function queuePulse(tStates, speedMult) {
+      const duration = (tStates / T_STATES_PER_SECOND) / speedMult;
+      const freq = 1.0 / (duration * 2);
+
+      const osc = simulatorAudioCtx.createOscillator();
+      const gain = simulatorAudioCtx.createGain();
+
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(freq, simAccumulatedTime);
+
+      gain.gain.setValueAtTime(0.08, simAccumulatedTime);
+      gain.gain.setValueAtTime(0.0, simAccumulatedTime + duration);
+
+      osc.connect(gain);
+      gain.connect(simulatorAudioCtx.destination);
+
+      osc.start(simAccumulatedTime);
+      osc.stop(simAccumulatedTime + duration);
+
+      simAccumulatedTime += duration;
+    }
+
+    function scheduleBorderColor(colorIndex, time) {
+      const delayMs = (time - simulatorAudioCtx.currentTime) * 1000;
+      if (delayMs < 0) {
+        borderViewport.style.backgroundColor = BORDER_HEX_COLORS[colorIndex];
+      } else {
+        setTimeout(() => {
+          if (simulatorPlayState === 'playing') {
+            borderViewport.style.backgroundColor = BORDER_HEX_COLORS[colorIndex];
+          }
+        }, delayMs);
+      }
+    }
+
+    // ----------------------------------------------------
+    // 7. SYNTHETIC .WAV EXPORTER (OfflineContext Rendering)
+    // ----------------------------------------------------
+    function exportTapeToWav() {
+      if (activeTapeBlocks.length === 0) generateTapeFromCurrentImage();
+      
+      const speedMult = parseFloat(document.getElementById('param-speed').value);
+      const sampleRate = 44100;
+      let totalDuration = 0;
+      
+      activeTapeBlocks.forEach(block => {
+        const pilotPulses = (block.type === 0) ? 4000 : 1500;
+        totalDuration += ((pilotPulses * PILOT_PULSE_TSTATES) / T_STATES_PER_SECOND) / speedMult;
+        totalDuration += ((FIRST_SYNC_PULSE_TSTATES + SECOND_SYNC_PULSE_TSTATES) / T_STATES_PER_SECOND) / speedMult;
+        
+        for (let i = 0; i < block.data.length; i++) {
+          const byteVal = block.data[i];
+          for (let bit = 7; bit >= 0; bit--) {
+            const period = (byteVal & (1 << bit)) !== 0 ? ONE_BIT_PULSE_TSTATES : ZERO_BIT_PULSE_TSTATES;
+            totalDuration += ((period * 2) / T_STATES_PER_SECOND) / speedMult;
+          }
+        }
+        totalDuration += (1.0 / speedMult);
+      });
+
+      const maxSeconds = 180;
+      const finalDuration = Math.min(totalDuration, maxSeconds);
+      const offlineCtx = new OfflineAudioContext(1, sampleRate * finalDuration, sampleRate);
+      let renderTime = 0;
+
+      activeTapeBlocks.forEach(block => {
+        if (renderTime >= finalDuration) return;
+
+        const pilotPulses = (block.type === 0) ? 4000 : 1500;
+        for (let i = 0; i < pilotPulses; i++) {
+          const duration = (PILOT_PULSE_TSTATES / T_STATES_PER_SECOND) / speedMult;
+          addOfflinePulse(offlineCtx, renderTime, duration);
+          renderTime += duration;
+        }
+
+        const sync1 = (FIRST_SYNC_PULSE_TSTATES / T_STATES_PER_SECOND) / speedMult;
+        addOfflinePulse(offlineCtx, renderTime, sync1);
+        renderTime += sync1;
+
+        const sync2 = (SECOND_SYNC_PULSE_TSTATES / T_STATES_PER_SECOND) / speedMult;
+        addOfflinePulse(offlineCtx, renderTime, sync2);
+        renderTime += sync2;
+
+        for (let b = 0; b < block.data.length; b++) {
+          if (renderTime >= finalDuration) break;
+          const byteVal = block.data[b];
+          for (let bit = 7; bit >= 0; bit--) {
+            const period = (byteVal & (1 << bit)) !== 0 ? ONE_BIT_PULSE_TSTATES : ZERO_BIT_PULSE_TSTATES;
+            const duration = (period / T_STATES_PER_SECOND) / speedMult;
+            
+            addOfflinePulse(offlineCtx, renderTime, duration);
+            renderTime += duration;
+            addOfflinePulse(offlineCtx, renderTime, duration);
+            renderTime += duration;
+          }
+        }
+        renderTime += (1.0 / speedMult);
+      });
+
+      document.getElementById('tape-status').textContent = "GENERATING WAV...";
+      offlineCtx.startRendering().then(renderedBuffer => {
+        const wavBlob = createWavBlobFromBuffer(renderedBuffer);
+        const url = URL.createObjectURL(wavBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        const name = getCleanFilename('tap-filename').trim();
+        a.download = name ? `${name}.wav` : "spectrum_loader.wav";
+        a.click();
+        URL.revokeObjectURL(url);
+        document.getElementById('tape-status').textContent = "WAV EXPORTED";
+      }).catch(err => {
+        console.error(err);
+        document.getElementById('tape-status').textContent = "EXPORT FAIL";
+      });
+    }
+
+    function addOfflinePulse(offlineCtx, startTime, duration) {
+      const osc = offlineCtx.createOscillator();
+      const gain = offlineCtx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(1.0 / (duration * 2), startTime);
+      gain.gain.setValueAtTime(0.5, startTime);
+      gain.gain.setValueAtTime(0.0, startTime + duration);
+      osc.connect(gain);
+      gain.connect(offlineCtx.destination);
+      osc.start(startTime);
+      osc.stop(startTime + duration);
+    }
+
+    function createWavBlobFromBuffer(audioBuffer) {
+      const channelData = audioBuffer.getChannelData(0);
+      const numSamples = channelData.length;
+      const buffer = new ArrayBuffer(44 + numSamples * 2);
+      const view = new DataView(buffer);
+
+      writeString(view, 0, 'RIFF');
+      view.setUint32(4, 36 + numSamples * 2, true);
+      writeString(view, 8, 'WAVE');
+      writeString(view, 12, 'fmt ');
+      view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true);
+      view.setUint16(22, 1, true);
+      view.setUint32(24, audioBuffer.sampleRate, true);
+      view.setUint32(28, audioBuffer.sampleRate * 2, true);
+      view.setUint16(32, 2, true);
+      view.setUint16(34, 16, true);
+      writeString(view, 36, 'data');
+      view.setUint32(40, numSamples * 2, true);
+
+      let index = 44;
+      for (let i = 0; i < numSamples; i++) {
+        let sample = Math.max(-1, Math.min(1, channelData[i]));
+        view.setInt16(index, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+        index += 2;
+      }
+      return new Blob([buffer], {type: 'audio/wav'});
+    }
+
+    function writeString(view, offset, string) {
+      for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i));
+    }
+
+    // ----------------------------------------------------
+    // 8. REAL WAV TAPE AUDIO DECODER (Schmitt Trigger API)
+    // ----------------------------------------------------
+    let liveDecodeState = { audioBuffer: null, abort: false };
+
+    function handleWavUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      document.getElementById('decode-status').textContent = "FILE SELECTED";
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        document.getElementById('decode-status').textContent = "DECODING AUDIO FILE...";
+        
+        audioCtx.decodeAudioData(event.target.result)
+          .then(buffer => {
+            liveDecodeState.audioBuffer = buffer;
+            document.getElementById('decode-status').textContent = "AUDIO READY";
+            visualizeWaveform(buffer);
+          }).catch(err => {
+            console.error(err);
+            document.getElementById('decode-status').textContent = "DECODE FAIL";
+          });
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function stopDecodingAudio() {
+      liveDecodeState.abort = true;
+      document.getElementById('decode-status').textContent = "DECODER ABORTED";
+    }
+
+    function decodeAudioFile() {
+      if (!liveDecodeState.audioBuffer) {
+        document.getElementById('decode-status').textContent = "NO AUDIO FILE LOADED";
+        return;
+      }
+
+      liveDecodeState.abort = false;
+      document.getElementById('decode-status').textContent = "PROCESSING TAPE EDGE DETECTS...";
+
+      const rawData = liveDecodeState.audioBuffer.getChannelData(0);
+      const sampleRate = liveDecodeState.audioBuffer.sampleRate;
+      clearSpectrumDisplay();
+
+      let sampleIndex = 0;
+      let lastEdgeIdx = 0;
+      let currentState = 1; 
+
+      const upperThreshold = 0.15, lowerThreshold = -0.15;
+      const tStateToSamples = sampleRate / T_STATES_PER_SECOND;
+      const minPilotSamples = (PILOT_PULSE_TSTATES * 0.7) * tStateToSamples;
+      const maxPilotSamples = (PILOT_PULSE_TSTATES * 1.3) * tStateToSamples;
+      const minOneSamples = (ONE_BIT_PULSE_TSTATES * 0.75) * tStateToSamples;
+      const minZeroSamples = (ZERO_BIT_PULSE_TSTATES * 0.7) * tStateToSamples;
+
+      let pilotCount = 0, isDecodingData = false, currentByte = 0, currentBitIndex = 7, dataBytesLoaded = 0;
+      let activePulseWidths = [];
+
+      function parseChunk() {
+        if (liveDecodeState.abort) return;
+        const limit = Math.min(sampleIndex + 50000, rawData.length);
+
+        for (; sampleIndex < limit; sampleIndex++) {
+          const sample = rawData[sampleIndex];
+          let triggerFired = false;
+          if (currentState === 1 && sample < lowerThreshold) { currentState = -1; triggerFired = true; } 
+          else if (currentState === -1 && sample > upperThreshold) { currentState = 1; triggerFired = true; }
+
+          if (triggerFired) {
+            const width = sampleIndex - lastEdgeIdx;
+            lastEdgeIdx = sampleIndex;
+
+            if (width < 3) continue;
+
+            if (!isDecodingData) {
+              if (width > minPilotSamples && width < maxPilotSamples) {
+                pilotCount++;
+                if (pilotCount % 100 === 0) borderViewport.style.backgroundColor = BORDER_HEX_COLORS[(pilotCount % 2 === 0) ? 1 : 6];
+              } else if (pilotCount > 500) {
+                isDecodingData = true; dataBytesLoaded = 0; currentByte = 0; currentBitIndex = 7; activePulseWidths = [];
+                document.getElementById('decode-status').textContent = "DECODING DATA BLOCK...";
+                pilotCount = 0;
+              }
+            } else {
+              activePulseWidths.push(width);
+              if (activePulseWidths.length >= 2) {
+                const avgWidth = (activePulseWidths[0] + activePulseWidths[1]) / 2;
+                activePulseWidths = [];
+
+                if (avgWidth > minZeroSamples) {
+                  if (avgWidth > minOneSamples) currentByte |= (1 << currentBitIndex);
+                  currentBitIndex--;
+
+                  if (currentBitIndex < 0) {
+                    if (dataBytesLoaded < 6912) {
+                      spectrumScreenBytes[dataBytesLoaded] = currentByte;
+                      if (dataBytesLoaded % 32 === 0) {
+                        renderLineProgress(dataBytesLoaded);
+                        document.getElementById('decode-progress').textContent = `${dataBytesLoaded} / 6912 Bytes`;
+                        document.getElementById('decode-progress-bar').style.width = `${(dataBytesLoaded / 6912) * 100}%`;
+                      }
+                    }
+                    dataBytesLoaded++;
+                    currentByte = 0; currentBitIndex = 7;
+                    borderViewport.style.backgroundColor = BORDER_HEX_COLORS[(dataBytesLoaded % 2 === 0) ? 2 : 5];
+
+                    if (dataBytesLoaded >= 6912) {
+                      isDecodingData = false;
+                      document.getElementById('decode-status').textContent = "DECODE COMPLETE";
+                      renderScrBufferToCanvas();
+                      break;
+                    }
+                  }
+                } else {
+                  isDecodingData = false; pilotCount = 0;
+                }
+              }
+            }
+          }
+        }
+
+        if (sampleIndex < rawData.length && isDecodingData) setTimeout(parseChunk, 0);
+        else if (sampleIndex >= rawData.length) {
+          document.getElementById('decode-status').textContent = dataBytesLoaded >= 6912 ? "DECODE COMPLETE" : "DECODE FINISHED (NO SCREEN$)";
+          renderScrBufferToCanvas();
+        }
+      }
+      parseChunk();
+    }
+
+    function visualizeWaveform(buffer) {
+      const vCanvas = document.getElementById('wave-vis-canvas');
+      const vCtx = vCanvas.getContext('2d');
+      const data = buffer.getChannelData(0);
+      const w = vCanvas.width = vCanvas.clientWidth;
+      const h = vCanvas.height = vCanvas.clientHeight;
+      
+      vCtx.fillStyle = "#000000"; vCtx.fillRect(0, 0, w, h);
+      vCtx.lineWidth = 1; vCtx.strokeStyle = "#a78bfa"; vCtx.beginPath();
+
+      const step = Math.ceil(data.length / w);
+      const amp = h / 2;
+      for (let i = 0; i < w; i++) {
+        let min = 1.0, max = -1.0;
+        for (let j = 0; j < step; j++) {
+          const datum = data[(i * step) + j];
+          if (datum < min) min = datum;
+          if (datum > max) max = datum;
+        }
+        vCtx.moveTo(i, (1 + min) * amp);
+        vCtx.lineTo(i, (1 + max) * amp);
+      }
+      vCtx.stroke();
+    }
+
+    document.getElementById('wav-upload').addEventListener('change', handleWavUpload);
+
+    // ----------------------------------------------------
+    // 9. EXTRAS / FUN FEATURES (CRT Filter, Static, SFX)
+    // ----------------------------------------------------
+    function toggleCrtFilter(checkbox) {
+      const container = document.getElementById('border-viewport');
+      if (checkbox.checked) {
+        container.classList.add('crt-active');
+      } else {
+        container.classList.remove('crt-active');
+      }
+    }
+
+    function generateScreenStatic() {
+      // Randomize all 6912 bytes of screen memory
+      for (let i = 0; i < 6912; i++) {
+        spectrumScreenBytes[i] = Math.floor(Math.random() * 256);
+      }
+      // Guarantee some bright/flash attribute colors for visual flair
+      for (let i = 6144; i < 6912; i++) {
+        if (Math.random() > 0.8) {
+          spectrumScreenBytes[i] |= 0x40; // Add bright bit
+        }
+      }
+      renderScrBufferToCanvas();
+      
+      // Random border color
+      borderViewport.style.backgroundColor = BORDER_HEX_COLORS[Math.floor(Math.random() * 8)];
+    }
+
+    function playSfxPew() {
+      initSimulatorAudioContext();
+      const osc = simulatorAudioCtx.createOscillator();
+      const gain = simulatorAudioCtx.createGain();
+      const now = simulatorAudioCtx.currentTime;
+      
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(1200, now);
+      osc.frequency.exponentialRampToValueAtTime(100, now + 0.3); // "Pew" drop
+      
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+      
+      osc.connect(gain);
+      gain.connect(simulatorAudioCtx.destination);
+      
+      osc.start(now);
+      osc.stop(now + 0.3);
+    }
+
+    function playSfxNoise() {
+      initSimulatorAudioContext();
+      const bufferSize = simulatorAudioCtx.sampleRate * 0.5; // 0.5 seconds of noise
+      const buffer = simulatorAudioCtx.createBuffer(1, bufferSize, simulatorAudioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      
+      // Generate blocky/1-bit style noise
+      let lastVal = 0;
+      for (let i = 0; i < bufferSize; i++) {
+        if (i % 10 === 0) { // Hold samples to sound more "chunky/retro"
+          lastVal = (Math.random() * 2) - 1 > 0 ? 1 : -1;
+        }
+        data[i] = lastVal;
+      }
+      
+      const noiseSource = simulatorAudioCtx.createBufferSource();
+      noiseSource.buffer = buffer;
+      
+      const gain = simulatorAudioCtx.createGain();
+      const now = simulatorAudioCtx.currentTime;
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+      
+      noiseSource.connect(gain);
+      gain.connect(simulatorAudioCtx.destination);
+      
+      noiseSource.start();
+    }
+
+  </script>
+</body>
+</html>
