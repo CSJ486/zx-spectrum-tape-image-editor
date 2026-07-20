@@ -25,6 +25,10 @@ Made by: Google Gemini AI, & ChatGPT. Built entirely with Vanilla HTML5, CSS3, a
 *   **Canvas API:** Used for pixel-perfect attribute clash rendering and image scaling.
 *   **Web Audio API:** Used for highly accurate cassette tape synthesis and Schmitt-trigger edge-detection decoding.
 
+## 🐛 Issues or Bugs
+
+If you're something problem to process or any bug to fix some ZX Spectrum and Sinclair being process, Feel free ask with add some "Issues" to will be fix some bug with AI. 😄
+
 ## 👤 Creator & Credits
 
 Created and developed by **RiziqMaulana** *(AKA CSJArchive, CSJA, and CSJ486 Alternative names)*.
