@@ -274,6 +274,15 @@
     .social-text { display: flex; flex-direction: column; }
     .social-title { font-weight: bold; font-size: 0.95rem; }
     .social-handle { font-size: 0.8rem; color: var(--muted-text); }
+
+    /* Manual Accordion Styling */
+    .manual-section { border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
+    .manual-header { padding: 12px; background: #f8fafc; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
+    .manual-header:hover { background: #f1f5f9; }
+    .manual-body { padding: 12px; font-size: 0.85rem; color: var(--text-color); border-top: 1px solid var(--border-color); display: none; line-height: 1.6; background: #fff; }
+    .manual-body p { margin-bottom: 8px; }
+    .manual-body ul { margin-left: 20px; margin-bottom: 8px; list-style-type: disc; }
+    .manual-body code { background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.8rem; font-weight: bold; color: var(--accent-hover); }
   </style>
 </head>
 <body>
@@ -311,6 +320,7 @@
       <button class="tab-btn" onclick="switchTab(this, 'tab-loader')">Tape Play</button>
       <button class="tab-btn" onclick="switchTab(this, 'tab-decoder')">WAV Decode</button>
       <button class="tab-btn" onclick="switchTab(this, 'tab-extras')">Extras & FX</button>
+      <button class="tab-btn" onclick="switchTab(this, 'tab-help')">Manual</button>
       <button class="tab-btn" onclick="switchTab(this, 'tab-about')">About</button>
     </div>
 
@@ -605,6 +615,86 @@
       </div>
     </div>
 
+    <!-- Help / User Manual -->
+    <div id="tab-help" class="card tab-content">
+      <div class="card-title">
+        <span>User Manual</span>
+        <span style="font-size: 0.75rem; color: var(--muted-text)">Help & Guides</span>
+      </div>
+
+      <div class="manual-section">
+        <div class="manual-header" onclick="toggleManual(this)">1. How to Code in Sinclair BASIC <span>+</span></div>
+        <div class="manual-body">
+          <p>The <strong>BASIC Editor</strong> tab allows you to write real Sinclair BASIC programs. When compiled, the text is automatically tokenized into native ZX Spectrum bytecode.</p>
+          <ul>
+            <li>Every line must begin with a <strong>Line Number</strong> (e.g., <code>10 PRINT "HELLO"</code>).</li>
+            <li>Use <code>:</code> to separate multiple commands on a single line (e.g., <code>10 BORDER 2: PAPER 0: INK 7: CLS</code>).</li>
+            <li>The compiler auto-capitalizes keywords and handles tokenization (e.g., <code>PRINT</code> becomes token <code>0xF5</code>).</li>
+            <li>Use the <strong>Load Example Program</strong> dropdown to see working templates.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="manual-section">
+        <div class="manual-header" onclick="toggleManual(this)">2. Adding an Image to your BASIC Program <span>+</span></div>
+        <div class="manual-body">
+          <p>You can bundle a picture with your game or software so it loads first like a classic title screen.</p>
+          <ol style="margin-left: 20px; margin-bottom: 8px;">
+            <li>Go to the <strong>BASIC Editor</strong> tab.</li>
+            <li>Click <strong>Select PHOTO / IMAGE</strong> and choose a picture from your device.</li>
+            <li>Ensure the <strong>Append Converted Image (Screen$)</strong> switch is ON.</li>
+            <li>Write your code. The compiler will automatically insert a <code>LOAD "" SCREEN$</code> command at the very start of your program if you haven't written one manually.</li>
+            <li>Click <strong>Compile to .TAP</strong>. The resulting file will contain the Image Block first, followed by your BASIC Block.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="manual-section">
+        <div class="manual-header" onclick="toggleManual(this)">3. Saving & Exporting to Tape (.TAP / .WAV) <span>+</span></div>
+        <div class="manual-body">
+          <p>This tool supports generating both emulator-friendly data files and real audio cassettes.</p>
+          <ul>
+            <li><strong>.TAP Export:</strong> In the Spectrumizer or BASIC tabs, clicking Export/Compile will instantly download a clean digital <code>.TAP</code> file. These are perfect for emulators like Fuse or Spectaculator.</li>
+            <li><strong>.WAV Audio Export:</strong> If you want to load your creation onto real hardware using a cassette deck or your phone's headphone jack, go to the <strong>Tape Play</strong> tab. Click <strong>Export Current tape to .WAV</strong>. This uses a synthesizer engine to write the distinct pilot tones and data pulses into a standard audio file.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="manual-section">
+        <div class="manual-header" onclick="toggleManual(this)">4. The Image Spectrumizer (SCR Converter) <span>+</span></div>
+        <div class="manual-body">
+          <p>The <strong>Spectrumizer</strong> tab converts modern photos into 256x192 retro graphics subject to "Attribute Clash" limits (only 2 colors allowed per 8x8 pixel block).</p>
+          <ul>
+            <li><strong>Fit Mode:</strong> Controls how the image scales. <em>Smart Contain</em> extends the edges to fill blank space smoothly.</li>
+            <li><strong>Dithering:</strong> Mixes pixels to simulate more colors and shades. Turn this off for sharp cartoon-like art, or leave it on for photographs.</li>
+            <li><strong>Monochrome:</strong> Forces a strict 1-bit black and white output which bypasses the attribute clash limit entirely, creating a crisp sketch look.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="manual-section">
+        <div class="manual-header" onclick="toggleManual(this)">5. Simulating & Playing Tapes <span>+</span></div>
+        <div class="manual-body">
+          <p>The <strong>Tape Play</strong> tab acts like a virtual cassette deck.</p>
+          <ul>
+            <li>You can upload an existing <code>.TAP</code> file to watch it load, or play the image you just converted.</li>
+            <li>Clicking <strong>Play</strong> will simulate the tape loading process in real-time. You will hear the classic screeching sounds and see the border flashing accurately based on the T-State timings of a real ZX Spectrum CPU.</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="manual-section">
+        <div class="manual-header" onclick="toggleManual(this)">6. Real WAV Audio Decoding <span>+</span></div>
+        <div class="manual-body">
+          <p>Have an audio recording of a real ZX Spectrum cassette? The <strong>WAV Decode</strong> tab can analyze the screeching noises and translate them back into an image.</p>
+          <ul>
+            <li>It uses an offline Schmitt-trigger algorithm to detect the rising and falling edges of the audio wave to distinguish 0 bits from 1 bits.</li>
+            <li>Simply upload your tape's <code>.WAV</code> file, click Analyze, and watch it draw the screen data live.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
     <!-- About / Credits -->
     <div id="tab-about" class="card tab-content">
       <div class="card-title">
@@ -803,6 +893,19 @@
 
       if (tabId === 'tab-converter') {
         renderScrBufferToCanvas();
+      }
+    }
+
+    // Manual Accordion Toggle
+    function toggleManual(headerEl) {
+      const body = headerEl.nextElementSibling;
+      const symbol = headerEl.querySelector('span');
+      if (body.style.display === 'block') {
+        body.style.display = 'none';
+        symbol.textContent = '+';
+      } else {
+        body.style.display = 'block';
+        symbol.textContent = '−';
       }
     }
 
