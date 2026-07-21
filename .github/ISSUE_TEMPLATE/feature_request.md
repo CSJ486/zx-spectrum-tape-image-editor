@@ -2,7 +2,7 @@
 name: Feature request
 about: A new idea for ZX Spectrum Tape Loader.
 title: ''
-labels: ''
+labels: enhancement
 assignees: ''
 
 ---

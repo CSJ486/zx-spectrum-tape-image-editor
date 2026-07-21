@@ -2,7 +2,7 @@
 name: Question
 about: Describe this issue ZX Spectrum Tape Loader purpose here.
 title: ''
-labels: ''
+labels: question
 assignees: ''
 
 ---
