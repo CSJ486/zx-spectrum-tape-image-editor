@@ -1,0 +1,49 @@
+name: Process / Workflow Problem
+description: Report a broken or confusing process in the app
+title: "[PROCESS]: "
+labels: ["process"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this for problems in the workflow, such as image conversion, tape generation, mode switching, or decoding.
+
+  - type: dropdown
+    id: workflow
+    attributes:
+      label: Workflow Area
+      options:
+        - Image Spectrumizer
+        - BASIC Editor
+        - TAP Export
+        - WAV Export
+        - Tape Simulator
+        - WAV Decoder
+        - Graphic Modes
+        - Manual
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What part of the process is failing?
+      placeholder: Explain what is not working step by step.
+    validations:
+      required: true
+
+  - type: textarea
+    id: result
+    attributes:
+      label: What result are you getting?
+      placeholder: Describe the incorrect result.
+    validations:
+      required: true
+
+  - type: textarea
+    id: desired
+    attributes:
+      label: What should happen instead?
+      placeholder: Explain the correct behavior.
+    validations:
+      required: true
