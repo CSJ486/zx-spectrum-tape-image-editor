@@ -39,7 +39,8 @@ Created and developed by **RiziqMaulana** *(AKA CSJArchive, CSJA, and CSJ486 Alt
 *   🎨 **DeviantArt:** [deviantart.com/riziqmaulana](https://www.deviantart.com/riziqmaulana)
 *   🏛️ **Internet Archive:** [archive.org/details/@riziq_maulana](https://archive.org/details/@riziq_maulana)
 *   ✖️ **X (Twitter):** [x.com/RMaulana52881](https://x.com/RMaulana52881)
-*   🖥️ **GitHub:** *Already you view it.*
+*   🖥️ **GitHub:**
+[*Already you view it.*]
 
 ## ⚖️ Trademarks & Legal
 
