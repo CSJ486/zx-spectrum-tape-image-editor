@@ -1,4 +1,4 @@
-# 📼 ZX Spectrum Mobile Tape & Image Loader
+# 📼 ZX Spectrum Tape & Image Loader Editor
 
 A completely client-side retro-computing tool optimized for mobile browsers. This single-file web application allows you to convert images, write native Sinclair BASIC, compile `.TAP` files, and synthesize real-time cassette loading audio directly in your browser.
 
