@@ -38,7 +38,7 @@
 
     header {
       width: 100%;
-      max-width: 600px;
+      max-width: 620px;
       margin-bottom: 16px;
       text-align: center;
     }
@@ -59,7 +59,7 @@
 
     .main-container {
       width: 100%;
-      max-width: 600px;
+      max-width: 620px;
       display: flex;
       flex-direction: column;
       gap: 16px;
@@ -101,7 +101,7 @@
       transition: background-color 0.05s linear;
     }
 
-    canvas {
+    canvas#spectrum-canvas {
       width: 100%;
       height: auto;
       max-width: 100%;
@@ -112,12 +112,11 @@
       image-rendering: crisp-edges;
       box-shadow: 0 4px 12px rgba(0,0,0,0.5);
       background-color: #000;
-      aspect-ratio: 4/3;
       position: relative;
       z-index: 1;
     }
 
-    /* Authentic CRT overlay */
+    /* CRT overlay */
     .crt-overlay {
       position: absolute;
       top: 16px; left: 16px; right: 16px; bottom: 16px;
@@ -246,7 +245,6 @@
     .info-block { font-size: 0.8rem; color: var(--muted-text); line-height: 1.4; margin-top: 8px; }
     .wave-visualizer { width: 100%; height: 32px; background: #000; border-radius: 4px; margin-top: 8px; }
 
-    /* Custom Non-blocking compile status box */
     .compile-status-box {
       margin-top: 12px;
       padding: 12px;
@@ -266,7 +264,6 @@
       color: #166534;
     }
 
-    /* Social Links Styling */
     .social-links { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
     .social-link { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text-color); padding: 10px; border-radius: 8px; background: #f8fafc; border: 1px solid var(--border-color); transition: background 0.2s; }
     .social-link:hover { background: #e2e8f0; }
@@ -275,7 +272,6 @@
     .social-title { font-weight: bold; font-size: 0.95rem; }
     .social-handle { font-size: 0.8rem; color: var(--muted-text); }
 
-    /* Manual Accordion Styling */
     .manual-section { border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
     .manual-header { padding: 12px; background: #f8fafc; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
     .manual-header:hover { background: #f1f5f9; }
@@ -283,6 +279,7 @@
     .manual-body p { margin-bottom: 8px; }
     .manual-body ul { margin-left: 20px; margin-bottom: 8px; list-style-type: disc; }
     .manual-body code { background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.8rem; font-weight: bold; color: var(--accent-hover); }
+    .mode-badge { display: inline-block; padding: 2px 6px; background: #2563eb; color: #fff; font-size: 0.7rem; border-radius: 4px; font-weight: bold; margin-left: 6px; }
   </style>
 </head>
 <body>
@@ -303,12 +300,15 @@
       
       <!-- Display Canvas Scale Controls -->
       <div class="scale-controls">
-        <label>Display Zoom Level</label>
+        <div>
+          <label>Zoom Level</label>
+          <span id="active-mode-display" class="mode-badge">256x192 Standard</span>
+        </div>
         <select id="param-display-scale">
-          <option value="auto">Auto Fit (Mobile)</option>
-          <option value="1">1x (256x192)</option>
-          <option value="2">2x (512x384)</option>
-          <option value="3">3x (768x576)</option>
+          <option value="auto">Auto Fit</option>
+          <option value="1">1x Scale</option>
+          <option value="2">2x Scale</option>
+          <option value="3">3x Scale</option>
         </select>
       </div>
     </div>
@@ -317,6 +317,7 @@
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab(this, 'tab-converter')">Spectrumizer</button>
       <button class="tab-btn" onclick="switchTab(this, 'tab-basic')">BASIC Editor</button>
+      <button class="tab-btn" onclick="switchTab(this, 'tab-asm')">ASM Converter</button>
       <button class="tab-btn" onclick="switchTab(this, 'tab-loader')">Tape Play</button>
       <button class="tab-btn" onclick="switchTab(this, 'tab-decoder')">WAV Decode</button>
       <button class="tab-btn" onclick="switchTab(this, 'tab-extras')">Extras & FX</button>
@@ -324,11 +325,11 @@
       <button class="tab-btn" onclick="switchTab(this, 'tab-about')">About</button>
     </div>
 
-    <!-- Convert PNG/JPG to Spectrum Screen$ -->
+    <!-- Convert PNG/JPG to Spectrum Screen$ / Bitmap -->
     <div id="tab-converter" class="card tab-content active">
       <div class="card-title">
         <span>Image Spectrumizer</span>
-        <span style="font-size: 0.75rem; color: var(--muted-text)">Convert to SCR</span>
+        <span style="font-size: 0.75rem; color: var(--muted-text)">Convert Image</span>
       </div>
 
       <div class="control-group">
@@ -337,6 +338,19 @@
           Select Photo / Image
         </label>
         <input type="file" id="img-upload" class="file-input" accept="image/*">
+      </div>
+
+      <div class="control-group">
+        <label>ZX Spectrum Video &amp; Bitmap Mode</label>
+        <select id="param-video-mode">
+          <option value="std-256">Standard ZX Spectrum Color Bitmap (256×192, 6,912 bytes)</option>
+          <option value="colors-std">Colors Bitmap (256×192, 32×24 attributes, 15 colours)</option>
+          <option value="mono-std">Monochrome Bitmap (256×192, 32×24 attributes, 15 greyscale)</option>
+          <option value="timex-hicolor">Timex Hi-Color 256×192 (8×1 Attr Clash)</option>
+        </select>
+        <div class="info-block" style="margin-top: 8px;">
+          Colors Bitmap uses the same 6,912-byte ZX Spectrum screen layout as the standard mode. Monochrome uses the same layout with grayscale rendering.
+        </div>
       </div>
 
       <div class="btn-grid" style="margin-bottom: 12px;">
@@ -451,7 +465,7 @@
         <select id="param-basic-mode">
           <option value="48">ZX Spectrum 48K</option>
           <option value="128">ZX Spectrum 128K</option>
-          <option value="timex">Timex Sinclair</option>
+          <option value="timex">Timex Sinclair 2068</option>
         </select>
       </div>
 
@@ -486,7 +500,55 @@
       <div id="basic-compile-status" class="compile-status-box"></div>
 
       <div class="info-block">
-        Write native ZX Sinclair BASIC. The compiler tokenizes keywords automatically and builds real native bytecode block payloads. Use the PHOTO / IMAGE button to import a picture, choose a fit mode, and the compiler will inject a Screen$ loader so the emulator shows the picture after loading the BASIC program.
+        Write native ZX Sinclair BASIC. Keywords are automatically tokenized. You can append your converted screen or bitmap image directly into the generated tape file.
+      </div>
+    </div>
+
+
+    <!-- ZX ASM to TAP Converter -->
+    <div id="tab-asm" class="card tab-content">
+      <div class="card-title">
+        <span>ASM to TAP Converter</span>
+        <span style="font-size: 0.75rem; color: var(--muted-text)">Machine Code</span>
+      </div>
+
+      <div class="control-group">
+        <label>Assembly Source (.ASM)</label>
+        <textarea id="asm-code" spellcheck="false" placeholder="ORG 32768&#10;start:&#10;  XOR A&#10;  LD (23693),A&#10;  RET"></textarea>
+      </div>
+
+      <div class="btn-grid" style="margin-bottom: 12px;">
+        <div class="control-group" style="margin-bottom: 0;">
+          <label>Origin Address</label>
+          <input type="number" id="asm-origin" min="0" max="65535" value="32768">
+        </div>
+        <div class="control-group" style="margin-bottom: 0;">
+          <label>Run Address</label>
+          <input type="number" id="asm-runaddr" min="0" max="65535" value="32768">
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label>Program Name (10 chars)</label>
+        <input type="text" id="asm-filename" maxlength="10" value="ASMCODE">
+      </div>
+
+      <div class="switch-container">
+        <span style="font-size: 0.85rem; font-weight: 600; color: var(--muted-text); text-transform: uppercase;">Include BASIC Loader</span>
+        <label class="switch">
+          <input type="checkbox" id="asm-autoload" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <button class="action-btn" style="margin-top: 12px; background-color: #0f766e;" onclick="compileAsmToTap()">
+        Compile ASM to .TAP
+      </button>
+
+      <div id="asm-compile-status" class="compile-status-box"></div>
+
+      <div class="info-block">
+        Practical ZX Spectrum assembly subset: labels, ORG, DB/DEFB, DW/DEFW, DS/DEFS, LD, JP, JR, CALL, RET, RST, INC, DEC, PUSH, POP, and common one-byte instructions. The TAP can include an automatic BASIC loader.
       </div>
     </div>
 
@@ -506,7 +568,7 @@
       </div>
 
       <div class="control-group">
-        <label>Playback & Export Speed</label>
+        <label>Playback &amp; Export Speed</label>
         <select id="param-speed">
           <option value="1">Standard (1500 bps)</option>
           <option value="2">Fast (3000 bps)</option>
@@ -535,11 +597,11 @@
       </div>
 
       <button class="action-btn" style="margin-top: 12px; background-color: #059669;" onclick="exportTapeToWav()">
-        Export Current tape to .WAV
+        Export Current Tape to .WAV
       </button>
 
       <div class="info-block">
-        Plays standard ZX Spectrum tapes or your converted image with synthetic, real-time edge sounds. Border flashing synchronizes perfectly.
+        Plays standard ZX Spectrum tapes or your converted images with real-time synthesized cassette sounds and border synchronization.
       </div>
     </div>
 
@@ -579,14 +641,14 @@
       </div>
 
       <div class="info-block">
-        Uses offline analysis and Schmitt-trigger edge evaluation of genuine audio cassette frequencies (Pilot tone: ~800Hz, Data signals: 1200-2400Hz).
+        Uses Schmitt-trigger edge evaluation of genuine cassette audio pulse frequencies to rebuild tape data.
       </div>
     </div>
 
     <!-- Extras / Toys -->
     <div id="tab-extras" class="card tab-content">
       <div class="card-title">
-        <span>Extras & Fun</span>
+        <span>Extras &amp; Fun</span>
         <span style="font-size: 0.75rem; color: var(--muted-text)">Toys</span>
       </div>
 
@@ -610,7 +672,7 @@
         <label>Screen Scramblers</label>
         <div class="btn-grid">
           <button class="action-btn" style="background-color: #d97706;" onclick="generateScreenStatic()">Generate TV Static</button>
-          <button class="action-btn" style="background-color: #dc2626;" onclick="clearSpectrumDisplay()">Clear Screen (Black)</button>
+          <button class="action-btn" style="background-color: #dc2626;" onclick="clearSpectrumDisplay()">Clear Screen</button>
         </div>
       </div>
     </div>
@@ -625,72 +687,112 @@
       <div class="manual-section">
         <div class="manual-header" onclick="toggleManual(this)">1. How to Code in Sinclair BASIC <span>+</span></div>
         <div class="manual-body">
-          <p>The <strong>BASIC Editor</strong> tab allows you to write real Sinclair BASIC programs. When compiled, the text is automatically tokenized into native ZX Spectrum bytecode.</p>
+          <p>Type normal Sinclair BASIC with a number at the start of each line. The compiler uses those line numbers to build a valid program listing.</p>
           <ul>
-            <li>Every line must begin with a <strong>Line Number</strong> (e.g., <code>10 PRINT "HELLO"</code>).</li>
-            <li>Use <code>:</code> to separate multiple commands on a single line (e.g., <code>10 BORDER 2: PAPER 0: INK 7: CLS</code>).</li>
-            <li>The compiler auto-capitalizes keywords and handles tokenization (e.g., <code>PRINT</code> becomes token <code>0xF5</code>).</li>
-            <li>Use the <strong>Load Example Program</strong> dropdown to see working templates.</li>
+            <li>Start every instruction with a line number such as <code>10</code>, <code>20</code>, <code>30</code>.</li>
+            <li>Use <code>PRINT</code>, <code>CLS</code>, <code>LOAD</code>, <code>PAUSE</code>, <code>GO TO</code>, and other keywords as usual.</li>
+            <li>Keep strings inside quotes. Example: <code>10 PRINT "HELLO"</code>.</li>
+            <li>For image loaders, a common starter line is <code>LOAD "" SCREEN$</code>.</li>
           </ul>
+          <p>The BASIC Editor automatically tokenizes supported Sinclair keywords during compilation.</p>
         </div>
       </div>
 
       <div class="manual-section">
         <div class="manual-header" onclick="toggleManual(this)">2. Adding an Image to your BASIC Program <span>+</span></div>
         <div class="manual-body">
-          <p>You can bundle a picture with your game or software so it loads first like a classic title screen.</p>
-          <ol style="margin-left: 20px; margin-bottom: 8px;">
-            <li>Go to the <strong>BASIC Editor</strong> tab.</li>
-            <li>Click <strong>Select PHOTO / IMAGE</strong> and choose a picture from your device.</li>
-            <li>Ensure the <strong>Append Converted Image (Screen$)</strong> switch is ON.</li>
-            <li>Write your code. The compiler will automatically insert a <code>LOAD "" SCREEN$</code> command at the very start of your program if you haven't written one manually.</li>
-            <li>Click <strong>Compile to .TAP</strong>. The resulting file will contain the Image Block first, followed by your BASIC Block.</li>
-          </ol>
+          <p>Use <strong>Select PHOTO / IMAGE</strong> inside the BASIC Editor to import a picture and convert it into tape screen data.</p>
+          <ul>
+            <li>Choose an image file from your device.</li>
+            <li>Select the fit mode: <strong>Crop</strong>, <strong>Smart Contain</strong>, <strong>Pad</strong>, or <strong>Stretch</strong>.</li>
+            <li>Keep <strong>Append Converted Image (Screen$)</strong> enabled when you want the image included in the TAP.</li>
+            <li>If you want the picture to show after loading, include a loader line such as <code>LOAD "" SCREEN$</code> in the BASIC program.</li>
+          </ul>
+          <p>This adds the converted image as Spectrum screen data so the tape can load both code and picture together.</p>
         </div>
       </div>
 
       <div class="manual-section">
         <div class="manual-header" onclick="toggleManual(this)">3. Saving & Exporting to Tape (.TAP / .WAV) <span>+</span></div>
         <div class="manual-body">
-          <p>This tool supports generating both emulator-friendly data files and real audio cassettes.</p>
+          <p>The app can export your program as a <code>.TAP</code> file and also create a <code>.WAV</code> tape audio version.</p>
           <ul>
-            <li><strong>.TAP Export:</strong> In the Spectrumizer or BASIC tabs, clicking Export/Compile will instantly download a clean digital <code>.TAP</code> file. These are perfect for emulators like Fuse or Spectaculator.</li>
-            <li><strong>.WAV Audio Export:</strong> If you want to load your creation onto real hardware using a cassette deck or your phone's headphone jack, go to the <strong>Tape Play</strong> tab. Click <strong>Export Current tape to .WAV</strong>. This uses a synthesizer engine to write the distinct pilot tones and data pulses into a standard audio file.</li>
+            <li><strong>.TAP</strong> is the tape block file used by Spectrum emulators.</li>
+            <li><strong>.WAV</strong> is useful when you want a real audio cassette-style file.</li>
+            <li>Tap <strong>Compile to .TAP</strong> in the BASIC Editor to build the program tape.</li>
+            <li>Tap <strong>Export Current Tape to .WAV</strong> in Tape Play to generate audio.</li>
           </ul>
+          <p>For picture loaders, the standard flow is: import image, compile BASIC, then export the tape file you want.</p>
         </div>
       </div>
 
       <div class="manual-section">
         <div class="manual-header" onclick="toggleManual(this)">4. The Image Spectrumizer (SCR Converter) <span>+</span></div>
         <div class="manual-body">
-          <p>The <strong>Spectrumizer</strong> tab converts modern photos into 256x192 retro graphics subject to "Attribute Clash" limits (only 2 colors allowed per 8x8 pixel block).</p>
+          <p>The Spectrumizer converts modern images into ZX-style screen graphics.</p>
           <ul>
-            <li><strong>Fit Mode:</strong> Controls how the image scales. <em>Smart Contain</em> extends the edges to fill blank space smoothly.</li>
-            <li><strong>Dithering:</strong> Mixes pixels to simulate more colors and shades. Turn this off for sharp cartoon-like art, or leave it on for photographs.</li>
-            <li><strong>Monochrome:</strong> Forces a strict 1-bit black and white output which bypasses the attribute clash limit entirely, creating a crisp sketch look.</li>
+            <li><strong>Standard ZX Spectrum:</strong> classic 256×192 screen with 8×8 attribute blocks.</li>
+            <li><strong>Timex Hi-Color:</strong> 8×1 attribute detail for finer color control.</li>
+            <li><strong>Mode 4 / 16-Color Bitmap:</strong> no attribute clash, more direct bitmap rendering.</li>
+            <li><strong>Extended Hi-Res:</strong> larger 384×304 image mode for advanced conversions.</li>
           </ul>
+          <p>Use brightness, contrast, saturation, chunk size, and dithering to tune the result before export.</p>
         </div>
       </div>
 
       <div class="manual-section">
         <div class="manual-header" onclick="toggleManual(this)">5. Simulating & Playing Tapes <span>+</span></div>
         <div class="manual-body">
-          <p>The <strong>Tape Play</strong> tab acts like a virtual cassette deck.</p>
+          <p>The Tape Play tab simulates a cassette loading process with border flashing and synthetic tape sounds.</p>
           <ul>
-            <li>You can upload an existing <code>.TAP</code> file to watch it load, or play the image you just converted.</li>
-            <li>Clicking <strong>Play</strong> will simulate the tape loading process in real-time. You will hear the classic screeching sounds and see the border flashing accurately based on the T-State timings of a real ZX Spectrum CPU.</li>
+            <li>Load a TAP file or let the app generate tape data from the current image.</li>
+            <li>Use <strong>Play</strong>, <strong>Pause</strong>, and <strong>Stop</strong> to control playback.</li>
+            <li>Change playback speed for standard, fast, or turbo loading.</li>
+            <li>The progress bar shows how far the tape block has loaded.</li>
           </ul>
+          <p>This is useful for previewing how your converted image or BASIC program behaves during loading.</p>
         </div>
       </div>
-      
+
       <div class="manual-section">
         <div class="manual-header" onclick="toggleManual(this)">6. Real WAV Audio Decoding <span>+</span></div>
         <div class="manual-body">
-          <p>Have an audio recording of a real ZX Spectrum cassette? The <strong>WAV Decode</strong> tab can analyze the screeching noises and translate them back into an image.</p>
+          <p>The WAV Decode tab analyzes real tape audio and tries to rebuild tape blocks from the waveform.</p>
           <ul>
-            <li>It uses an offline Schmitt-trigger algorithm to detect the rising and falling edges of the audio wave to distinguish 0 bits from 1 bits.</li>
-            <li>Simply upload your tape's <code>.WAV</code> file, click Analyze, and watch it draw the screen data live.</li>
+            <li>Upload a <code>.WAV</code> file recorded from a Spectrum tape.</li>
+            <li>Tap <strong>Analyze &amp; Draw</strong> to inspect and decode the audio.</li>
+            <li>The decoder follows pulse transitions and cassette-style signal timing.</li>
+            <li>Use <strong>Abort</strong> if the file is wrong or the analysis should stop.</li>
           </ul>
+          <p>For the best result, use clean audio with minimal noise and a stable tape capture.</p>
+        </div>
+      </div>
+
+      <div class="manual-section">
+        <div class="manual-header" onclick="toggleManual(this)">7. Extended Graphic Modes <span>+</span></div>
+        <div class="manual-body">
+          <p>The app supports more than the classic Spectrum screen layout.</p>
+          <ul>
+            <li><strong>Standard ZX Spectrum 256×192:</strong> 6,912-byte screen layout with 8×8 attribute clash.</li>
+            <li><strong>Timex Hi-Color 256×192:</strong> 12,288-byte layout with 8×1 color detail.</li>
+            <li><strong>Mode 4 / 16-Color Bitmap 256×192:</strong> 24,576-byte bitmap mode with no attribute clash.</li>
+            <li><strong>Extended Hi-Res 384×304:</strong> 58,368-byte canvas for larger 16-color bitmap work.</li>
+          </ul>
+          <p>The video mode choice also changes how the image buffer, dithering, tape export, and decoding logic behave.</p>
+        </div>
+      </div>
+
+      <div class="manual-section">
+        <div class="manual-header" onclick="toggleManual(this)">8. Sinclair BASIC Compiler <span>+</span></div>
+        <div class="manual-body">
+          <p>The BASIC Compiler turns numbered Sinclair BASIC lines into a tape-ready program block.</p>
+          <ul>
+            <li>It tokenizes supported keywords like <code>PRINT</code>, <code>LOAD</code>, <code>IF</code>, <code>GOTO</code>, and <code>POKE</code>.</li>
+            <li>It writes a proper program header and data block for TAP output.</li>
+            <li>Optional image data can be appended as a screen block when enabled.</li>
+            <li>The program name and autostart line are taken from the BASIC Editor fields.</li>
+          </ul>
+          <p>If you are building an image loader, a simple working pattern is: choose an image, write a BASIC loader line, then compile to <code>.TAP</code>.</p>
         </div>
       </div>
     </div>
@@ -748,22 +850,22 @@
     // CONSTANTS & PALETTE DEFINITIONS
     // ----------------------------------------------------
     const SPECTRUM_COLORS = [
-      { r: 0,   g: 0,   b: 0   }, // Black
-      { r: 0,   g: 0,   b: 204 }, // Blue
-      { r: 204, g: 0,   b: 0   }, // Red
-      { r: 204, g: 0,   b: 204 }, // Magenta
-      { r: 0,   g: 204, b: 0   }, // Green
-      { r: 0,   g: 204, b: 204 }, // Cyan
-      { r: 204, g: 204, b: 0   }, // Yellow
-      { r: 204, g: 204, b: 204 }, // White (Normal)
-      { r: 0,   g: 0,   b: 0   }, // Black (Bright)
-      { r: 0,   g: 0,   b: 255 }, // Blue (Bright)
-      { r: 255, g: 0,   b: 0   }, // Red (Bright)
-      { r: 255, g: 0,   b: 255 }, // Magenta (Bright)
-      { r: 0,   g: 255, b: 0   }, // Green (Bright)
-      { r: 0,   g: 255, b: 255 }, // Cyan (Bright)
-      { r: 255, g: 255, b: 0   }, // Yellow (Bright)
-      { r: 255, g: 255, b: 255 }  // White (Bright)
+      { r: 0,   g: 0,   b: 0   }, // 0 Black
+      { r: 0,   g: 0,   b: 204 }, // 1 Blue
+      { r: 204, g: 0,   b: 0   }, // 2 Red
+      { r: 204, g: 0,   b: 204 }, // 3 Magenta
+      { r: 0,   g: 204, b: 0   }, // 4 Green
+      { r: 0,   g: 204, b: 204 }, // 5 Cyan
+      { r: 204, g: 204, b: 0   }, // 6 Yellow
+      { r: 204, g: 204, b: 204 }, // 7 White (Normal)
+      { r: 0,   g: 0,   b: 0   }, // 8 Black (Bright)
+      { r: 0,   g: 0,   b: 255 }, // 9 Blue (Bright)
+      { r: 255, g: 0,   b: 0   }, // 10 Red (Bright)
+      { r: 255, g: 0,   b: 255 }, // 11 Magenta (Bright)
+      { r: 0,   g: 255, b: 0   }, // 12 Green (Bright)
+      { r: 0,   g: 255, b: 255 }, // 13 Cyan (Bright)
+      { r: 255, g: 255, b: 0   }, // 14 Yellow (Bright)
+      { r: 255, g: 255, b: 255 }  // 15 White (Bright)
     ];
 
     const BORDER_HEX_COLORS = [
@@ -795,7 +897,6 @@
     };
     const SORTED_TOKENS = Object.keys(ZX_TOKENS).sort((a,b) => b.length - a.length);
 
-    // Basic Code Examples (Optimized standard loader to use empty quotes loader for 100% tape filename compatibility)
     const BASIC_EXAMPLES = {
       "loader": '10 BORDER 0: PAPER 0: INK 0: CLEAR 32767\n20 LOAD "" SCREEN$\n30 PAUSE 0\n40 GO TO 10',
       "hello": '10 BORDER 1: PAPER 1: INK 6: CLS\n20 PRINT "HELLO FROM 1982!"\n30 PAUSE 50\n40 PRINT "HOW ARE YOU?"\n50 GO TO 20',
@@ -803,30 +904,45 @@
       "draw": '10 BORDER 0: PAPER 0: CLS\n20 LET X1=INT(RND*255)\n30 LET Y1=INT(RND*175)\n40 LET X2=INT(RND*255)\n50 LET Y2=INT(RND*175)\n60 INK INT(RND*6)+1\n70 PLOT X1,Y1: DRAW X2-X1, Y2-Y1\n80 GO TO 20'
     };
 
-    // Global variables
+    // Global mode state
+    let activeVideoMode = 'std-256'; // 'std-256', 'timex-hicolor', 'mode4-256', 'ext-384'
+    let canvasWidth = 256;
+    let canvasHeight = 192;
+
     let globalRawImage = null; 
     let currentSourceImgData = null; 
     let spectrumScreenBytes = new Uint8Array(6912); 
     let currentImageControlSet = 'converter';
     let basicPhotoImageLoaded = false;
+    let currentSpectrumizerMode = 'std-256';
 
     // Canvas pointers
     const canvas = document.getElementById('spectrum-canvas');
     const ctx = canvas.getContext('2d');
     const borderViewport = document.getElementById('border-viewport');
 
-    // Init display
+    // Init display & Setup event listeners
+    initModeDimensions('std-256');
     clearSpectrumDisplay();
 
-    // Setup input listeners
     document.getElementById('img-upload').addEventListener('change', handleImageUpload);
     document.getElementById('basic-photo-upload').addEventListener('change', handleBasicPhotoUpload);
     document.getElementById('tap-upload').addEventListener('change', handleTapUpload);
     document.getElementById('param-fit').addEventListener('change', () => applyImageScaling('converter'));
     document.getElementById('basic-fit-mode').addEventListener('change', () => applyImageScaling('basic'));
     document.getElementById('param-chunk').addEventListener('change', () => applyImageScaling());
+    
+    document.getElementById('param-video-mode').addEventListener('change', (e) => {
+      initModeDimensions(e.target.value);
+      const monoBox = document.getElementById('param-monochrome');
+      monoBox.checked = (e.target.value === 'mono-std');
+      if (globalRawImage) {
+        applyImageScaling();
+      } else {
+        clearSpectrumDisplay();
+      }
+    });
 
-    // Zoom Canvas Listener
     document.getElementById('param-display-scale').addEventListener('change', (e) => {
       const val = e.target.value;
       if (val === 'auto') {
@@ -835,13 +951,12 @@
         canvas.style.maxWidth = '100%';
       } else {
         const mult = parseInt(val);
-        canvas.style.width = (256 * mult) + 'px';
-        canvas.style.height = (192 * mult) + 'px';
+        canvas.style.width = (canvasWidth * mult) + 'px';
+        canvas.style.height = (canvasHeight * mult) + 'px';
         canvas.style.maxWidth = 'none';
       }
     });
 
-    // Track slider displays
     const sliders = ['brightness', 'contrast', 'saturation'];
     sliders.forEach(id => {
       const input = document.getElementById(`param-${id}`);
@@ -851,7 +966,6 @@
       });
     });
 
-    // Filename uppercase enforcers
     document.getElementById('tap-filename').addEventListener('input', (e) => {
       e.target.value = e.target.value.toUpperCase();
     });
@@ -859,13 +973,13 @@
       e.target.value = e.target.value.toUpperCase();
     });
 
-    // Tap Handling globals
+    // Tape Handling globals
     let activeTapeBlocks = []; 
     let currentTapFilename = "";
 
     // Simulator runtime variables
     let simulatorAudioCtx = null;
-    let simulatorPlayState = 'idle'; 
+    let simulatorPlayState = 'stopped'; 
     let simBlockIndex = 0;
     let simByteIndex = 0;
     let simInPilot = true;
@@ -873,13 +987,38 @@
     let simPilotPulseCount = 0;
     let simAccumulatedTime = 0;
 
-    // Constants for hardware emulated sound loops (T-state based audio)
     const T_STATES_PER_SECOND = 3500000;
     const PILOT_PULSE_TSTATES = 2168;
     const FIRST_SYNC_PULSE_TSTATES = 667;
     const SECOND_SYNC_PULSE_TSTATES = 735;
     const ZERO_BIT_PULSE_TSTATES = 855;
     const ONE_BIT_PULSE_TSTATES = 1710;
+
+    function initModeDimensions(modeKey) {
+      currentSpectrumizerMode = modeKey;
+      if (modeKey === 'timex-hicolor') {
+        activeVideoMode = 'timex-hicolor';
+        canvasWidth = 256;
+        canvasHeight = 192;
+        spectrumScreenBytes = new Uint8Array(12288); // 6144 px + 6144 attr (per line)
+        document.getElementById('active-mode-display').textContent = '256x192 Hi-Color';
+      } else {
+        activeVideoMode = 'std-256';
+        canvasWidth = 256;
+        canvasHeight = 192;
+        spectrumScreenBytes = new Uint8Array(6912); // 6144 px + 768 attr
+        if (modeKey === 'colors-std') {
+          document.getElementById('active-mode-display').textContent = '256x192 Colors Bitmap';
+        } else if (modeKey === 'mono-std') {
+          document.getElementById('active-mode-display').textContent = '256x192 Monochrome Bitmap';
+        } else {
+          document.getElementById('active-mode-display').textContent = '256x192 Standard Color Bitmap';
+        }
+      }
+
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+    }
 
     // ----------------------------------------------------
     // 1. TABS MANAGEMENT
@@ -896,7 +1035,6 @@
       }
     }
 
-    // Manual Accordion Toggle
     function toggleManual(headerEl) {
       const body = headerEl.nextElementSibling;
       const symbol = headerEl.querySelector('span');
@@ -909,7 +1047,6 @@
       }
     }
 
-    // Load Basic Examples
     function loadBasicExample() {
       const val = document.getElementById('basic-examples').value;
       const textArea = document.getElementById('basic-code');
@@ -921,104 +1058,122 @@
     }
 
     // ----------------------------------------------------
-    // 2. VIDEO EMULATION RENDERING
+    // 2. VIDEO RENDERING & BUFFER CONVERSION
     // ----------------------------------------------------
     function clearSpectrumDisplay() {
-      for (let i = 0; i < 6144; i++) {
-        spectrumScreenBytes[i] = 0;
-      }
-      for (let i = 0; i < 768; i++) {
-        spectrumScreenBytes[6144 + i] = 56; // Standard grey paper, black ink
+      spectrumScreenBytes.fill(0);
+      if (activeVideoMode === 'std-256') {
+        for (let i = 0; i < 768; i++) {
+          spectrumScreenBytes[6144 + i] = 56; // Grey paper, black ink
+        }
+      } else if (activeVideoMode === 'timex-hicolor') {
+        for (let i = 0; i < 6144; i++) {
+          spectrumScreenBytes[6144 + i] = 56;
+        }
       }
       renderScrBufferToCanvas();
     }
 
     function renderScrBufferToCanvas() {
-      const imgData = ctx.createImageData(256, 192);
+      const imgData = ctx.createImageData(canvasWidth, canvasHeight);
       const data = imgData.data;
 
-      for (let y = 0; y < 192; y++) {
-        const third = Math.floor(y / 64);
-        const line = y % 8;
-        const offset = Math.floor((y % 64) / 8);
-        const pixelAddressOffset = (third * 2048) + (line * 256) + (offset * 32);
+      if (activeVideoMode === 'std-256') {
+        for (let y = 0; y < 192; y++) {
+          const third = Math.floor(y / 64);
+          const line = y % 8;
+          const offset = Math.floor((y % 64) / 8);
+          const pixelAddressOffset = (third * 2048) + (line * 256) + (offset * 32);
+          const attrRow = Math.floor(y / 8);
 
-        const attrRow = Math.floor(y / 8);
+          for (let xByte = 0; xByte < 32; xByte++) {
+            const pixelByte = spectrumScreenBytes[pixelAddressOffset + xByte];
+            const attrByte = spectrumScreenBytes[6144 + (attrRow * 32) + xByte];
 
-        for (let xByte = 0; xByte < 32; xByte++) {
-          const pixelByte = spectrumScreenBytes[pixelAddressOffset + xByte];
-          const attrByte = spectrumScreenBytes[6144 + (attrRow * 32) + xByte];
+            const bright = (attrByte & 0x40) !== 0;
+            const paperIdx = (attrByte & 0x38) >> 3;
+            const inkIdx = attrByte & 0x07;
 
-          const bright = (attrByte & 0x40) !== 0;
-          const paperIdx = (attrByte & 0x38) >> 3;
-          const inkIdx = attrByte & 0x07;
+            const colorBase = bright ? 8 : 0;
+            const inkColor = SPECTRUM_COLORS[colorBase + inkIdx];
+            const paperColor = SPECTRUM_COLORS[colorBase + paperIdx];
 
-          const colorBase = bright ? 8 : 0;
-          const inkColor = SPECTRUM_COLORS[colorBase + inkIdx];
-          const paperColor = SPECTRUM_COLORS[colorBase + paperIdx];
+            for (let bit = 0; bit < 8; bit++) {
+              const pixelX = (xByte * 8) + bit;
+              const pixelOn = (pixelByte & (0x80 >> bit)) !== 0;
+              const activeColor = pixelOn ? inkColor : paperColor;
 
-          for (let bit = 0; bit < 8; bit++) {
-            const pixelX = (xByte * 8) + bit;
-            const pixelOn = (pixelByte & (0x80 >> bit)) !== 0;
-            const activeColor = pixelOn ? inkColor : paperColor;
-
-            const canvasIdx = ((y * 256) + pixelX) * 4;
-            data[canvasIdx] = activeColor.r;
-            data[canvasIdx + 1] = activeColor.g;
-            data[canvasIdx + 2] = activeColor.b;
-            data[canvasIdx + 3] = 255;
+              const canvasIdx = ((y * 256) + pixelX) * 4;
+              data[canvasIdx] = activeColor.r;
+              data[canvasIdx + 1] = activeColor.g;
+              data[canvasIdx + 2] = activeColor.b;
+              data[canvasIdx + 3] = 255;
+            }
           }
+        }
+      } else if (activeVideoMode === 'timex-hicolor') {
+        for (let y = 0; y < 192; y++) {
+          const third = Math.floor(y / 64);
+          const line = y % 8;
+          const offset = Math.floor((y % 64) / 8);
+          const pixelAddressOffset = (third * 2048) + (line * 256) + (offset * 32);
+          const attrAddressOffset = (third * 2048) + (line * 256) + (offset * 32);
+
+          for (let xByte = 0; xByte < 32; xByte++) {
+            const pixelByte = spectrumScreenBytes[pixelAddressOffset + xByte];
+            const attrByte = spectrumScreenBytes[6144 + attrAddressOffset + xByte];
+
+            const bright = (attrByte & 0x40) !== 0;
+            const paperIdx = (attrByte & 0x38) >> 3;
+            const inkIdx = attrByte & 0x07;
+
+            const colorBase = bright ? 8 : 0;
+            const inkColor = SPECTRUM_COLORS[colorBase + inkIdx];
+            const paperColor = SPECTRUM_COLORS[colorBase + paperIdx];
+
+            for (let bit = 0; bit < 8; bit++) {
+              const pixelX = (xByte * 8) + bit;
+              const pixelOn = (pixelByte & (0x80 >> bit)) !== 0;
+              const activeColor = pixelOn ? inkColor : paperColor;
+
+              const canvasIdx = ((y * 256) + pixelX) * 4;
+              data[canvasIdx] = activeColor.r;
+              data[canvasIdx + 1] = activeColor.g;
+              data[canvasIdx + 2] = activeColor.b;
+              data[canvasIdx + 3] = 255;
+            }
+          }
+        }
+      } else if (activeVideoMode === 'mode4-256' || activeVideoMode === 'ext-384') {
+        const totalPixels = canvasWidth * canvasHeight;
+        for (let p = 0; p < totalPixels; p += 2) {
+          const byteVal = spectrumScreenBytes[p >> 1];
+          const c1Idx = (byteVal >> 4) & 0x0F;
+          const c2Idx = byteVal & 0x0F;
+
+          const color1 = SPECTRUM_COLORS[c1Idx];
+          const color2 = SPECTRUM_COLORS[c2Idx];
+
+          const p1Idx = p * 4;
+          data[p1Idx] = color1.r; data[p1Idx + 1] = color1.g; data[p1Idx + 2] = color1.b; data[p1Idx + 3] = 255;
+
+          const p2Idx = (p + 1) * 4;
+          data[p2Idx] = color2.r; data[p2Idx + 1] = color2.g; data[p2Idx + 2] = color2.b; data[p2Idx + 3] = 255;
         }
       }
       ctx.putImageData(imgData, 0, 0);
     }
 
     function renderLineProgress(loadedBytes) {
-      if (loadedBytes > 6144) {
+      if (activeVideoMode !== 'std-256' || loadedBytes > 6144) {
         renderScrBufferToCanvas();
         return;
       }
-      const imgData = ctx.getImageData(0,0,256,192);
-      const data = imgData.data;
-
-      for (let byteOffset = 0; byteOffset < 6144; byteOffset++) {
-        if (byteOffset >= loadedBytes) break;
-
-        const third = Math.floor(byteOffset / 2048);
-        const line = Math.floor((byteOffset % 2048) / 256);
-        const offset = Math.floor((byteOffset % 256) / 32);
-        const y = (third * 64) + (offset * 8) + line;
-
-        const xByte = byteOffset % 32;
-        const pixelByte = spectrumScreenBytes[byteOffset];
-
-        const attrRow = Math.floor(y / 8);
-        const attrByte = spectrumScreenBytes[6144 + (attrRow * 32) + xByte];
-        const bright = (attrByte & 0x40) !== 0;
-        const paperIdx = (attrByte & 0x38) >> 3;
-        const inkIdx = attrByte & 0x07;
-
-        const colorBase = bright ? 8 : 0;
-        const inkColor = SPECTRUM_COLORS[colorBase + inkIdx];
-        const paperColor = SPECTRUM_COLORS[colorBase + paperIdx];
-
-        for (let bit = 0; bit < 8; bit++) {
-          const pixelX = (xByte * 8) + bit;
-          const pixelOn = (pixelByte & (0x80 >> bit)) !== 0;
-          const activeColor = pixelOn ? inkColor : paperColor;
-
-          const canvasIdx = ((y * 256) + pixelX) * 4;
-          data[canvasIdx] = activeColor.r;
-          data[canvasIdx + 1] = activeColor.g;
-          data[canvasIdx + 2] = activeColor.b;
-          data[canvasIdx + 3] = 255;
-        }
-      }
-      ctx.putImageData(imgData, 0, 0);
+      renderScrBufferToCanvas();
     }
 
     // ----------------------------------------------------
-    // 3. IMAGE SPECTRUMIZER CORE ALGORITHM
+    // 3. IMAGE SPECTRUMIZER CORE CONVERTER
     // ----------------------------------------------------
     function loadImageFile(file, onReady, controlSet = 'converter') {
       if (!file) return;
@@ -1046,8 +1201,7 @@
       const file = e.target.files[0];
       loadImageFile(file, (pickedFile) => {
         basicPhotoImageLoaded = true;
-        const appendImg = document.getElementById('basic-append-img');
-        appendImg.checked = true;
+        document.getElementById('basic-append-img').checked = true;
 
         const tapName = document.getElementById('tap-filename');
         const baseName = (pickedFile.name || 'PHOTO')
@@ -1071,8 +1225,8 @@
 
       const fitMode = document.getElementById(controlSet === 'basic' ? 'basic-fit-mode' : 'param-fit').value;
       const chunk = parseInt(document.getElementById('param-chunk').value);
-      const renderW = 256 / chunk;
-      const renderH = 192 / chunk;
+      const renderW = canvasWidth / chunk;
+      const renderH = canvasHeight / chunk;
 
       const offscreenCanvas = document.createElement('canvas');
       offscreenCanvas.width = renderW;
@@ -1114,13 +1268,13 @@
       }
 
       const finalCanvas = document.createElement('canvas');
-      finalCanvas.width = 256;
-      finalCanvas.height = 192;
+      finalCanvas.width = canvasWidth;
+      finalCanvas.height = canvasHeight;
       const fCtx = finalCanvas.getContext('2d', { willReadFrequently: true });
       fCtx.imageSmoothingEnabled = false;
-      fCtx.drawImage(offscreenCanvas, 0, 0, 256, 192);
+      fCtx.drawImage(offscreenCanvas, 0, 0, canvasWidth, canvasHeight);
 
-      currentSourceImgData = fCtx.getImageData(0, 0, 256, 192);
+      currentSourceImgData = fCtx.getImageData(0, 0, canvasWidth, canvasHeight);
       processDitheredSpectrumImage();
     }
 
@@ -1128,7 +1282,7 @@
       if (!currentSourceImgData) return;
 
       const ditherEnabled = document.getElementById('param-dither').checked;
-      const isMonochrome = document.getElementById('param-monochrome').checked;
+      const isMonochrome = document.getElementById('param-monochrome').checked || currentSpectrumizerMode === 'mono-std';
       const brightnessVal = parseInt(document.getElementById('param-brightness').value);
       const contrastVal = parseInt(document.getElementById('param-contrast').value);
       const saturationVal = parseInt(document.getElementById('param-saturation').value) / 100;
@@ -1152,17 +1306,28 @@
         workingData[i + 2] = Math.min(255, Math.max(0, lum + (b - lum) * saturationVal));
       }
 
-      for (let cellY = 0; cellY < 24; cellY++) {
-        for (let cellX = 0; cellX < 32; cellX++) {
-          process8x8Cell(workingData, cellX, cellY, ditherEnabled, isMonochrome);
+      if (activeVideoMode === 'std-256') {
+        for (let cellY = 0; cellY < 24; cellY++) {
+          for (let cellX = 0; cellX < 32; cellX++) {
+            process8x8Cell(workingData, cellX, cellY, ditherEnabled, isMonochrome);
+          }
         }
+      } else if (activeVideoMode === 'timex-hicolor') {
+        for (let y = 0; y < 192; y++) {
+          for (let cellX = 0; cellX < 32; cellX++) {
+            process8x1LineCell(workingData, cellX, y, ditherEnabled, isMonochrome);
+          }
+        }
+      } else if (activeVideoMode === 'mode4-256' || activeVideoMode === 'ext-384') {
+        processBitmap16ColorMode(workingData, ditherEnabled, isMonochrome);
       }
 
       renderScrBufferToCanvas();
     }
 
-    function colorDistance(r1, g1, b1, r2, g2, b2) {
-      return 2 * Math.pow(r1 - r2, 2) + 4 * Math.pow(g1 - g2, 2) + 3 * Math.pow(b1 - b2, 2);
+    function colorDistanceFast(r1, g1, b1, r2, g2, b2) {
+      const dr = r1 - r2, dg = g1 - g2, db = b1 - b2;
+      return 2 * dr * dr + 4 * dg * dg + 3 * db * db;
     }
 
     function process8x8Cell(pixelArray, cellX, cellY, dither, isMonochrome) {
@@ -1185,20 +1350,16 @@
       let paperIdx, inkIdx;
 
       if (isMonochrome) {
-        paperIdx = 7; 
-        inkIdx = 0;
+        paperIdx = 7; inkIdx = 0;
         spectrumScreenBytes[6144 + (cellY * 32) + cellX] = 0x40 | (7 << 3) | 0;
       } else {
         const paletteOffset = isBright ? 8 : 0;
-        const localPalette = [];
-        for (let i = 0; i < 8; i++) localPalette.push({ id: i, color: SPECTRUM_COLORS[paletteOffset + i] });
-
         const colorCounts = new Array(8).fill(0);
         pixels.forEach(p => {
           let bestDist = Infinity, bestIdx = 0;
           for (let i = 0; i < 8; i++) {
-            const sc = localPalette[i].color;
-            const d = colorDistance(p.r, p.g, p.b, sc.r, sc.g, sc.b);
+            const sc = SPECTRUM_COLORS[paletteOffset + i];
+            const d = colorDistanceFast(p.r, p.g, p.b, sc.r, sc.g, sc.b);
             if (d < bestDist) { bestDist = d; bestIdx = i; }
           }
           colorCounts[bestIdx]++;
@@ -1216,7 +1377,6 @@
         }
 
         if (inkIdx === -1) inkIdx = (paperIdx === 0) ? 7 : 0;
-        
         spectrumScreenBytes[6144 + (cellY * 32) + cellX] = (isBright ? 0x40 : 0x00) | (paperIdx << 3) | inkIdx;
       }
 
@@ -1235,8 +1395,8 @@
           const absX = cellX * 8 + x;
           const p = localPixelsGrid[y][x];
 
-          const dPaper = colorDistance(p.r, p.g, p.b, cPaper.r, cPaper.g, cPaper.b);
-          const dInk = colorDistance(p.r, p.g, p.b, cInk.r, cInk.g, cInk.b);
+          const dPaper = colorDistanceFast(p.r, p.g, p.b, cPaper.r, cPaper.g, cPaper.b);
+          const dInk = colorDistanceFast(p.r, p.g, p.b, cInk.r, cInk.g, cInk.b);
 
           const isInk = dInk < dPaper;
           const finalColor = isInk ? cInk : cPaper;
@@ -1264,16 +1424,125 @@
       }
     }
 
+    function process8x1LineCell(pixelArray, cellX, y, dither, isMonochrome) {
+      let totalLum = 0;
+      const linePixels = [];
+      for (let x = 0; x < 8; x++) {
+        const absX = cellX * 8 + x;
+        const idx = (y * 256 + absX) * 4;
+        const r = pixelArray[idx], g = pixelArray[idx + 1], b = pixelArray[idx + 2];
+        linePixels.push({ r, g, b, absX });
+        totalLum += (0.299 * r + 0.587 * g + 0.114 * b);
+      }
+
+      const isBright = (totalLum / 8) > 90;
+      const paletteOffset = isBright ? 8 : 0;
+      let paperIdx = 0, inkIdx = 7;
+
+      if (!isMonochrome) {
+        let bestCount = -1;
+        const counts = new Array(8).fill(0);
+        linePixels.forEach(p => {
+          let minD = Infinity, bestI = 0;
+          for (let i = 0; i < 8; i++) {
+            const sc = SPECTRUM_COLORS[paletteOffset + i];
+            const d = colorDistanceFast(p.r, p.g, p.b, sc.r, sc.g, sc.b);
+            if (d < minD) { minD = d; bestI = i; }
+          }
+          counts[bestI]++;
+        });
+
+        for (let i = 0; i < 8; i++) {
+          if (counts[i] > bestCount) { bestCount = counts[i]; paperIdx = i; }
+        }
+        let nextBest = -1;
+        for (let i = 0; i < 8; i++) {
+          if (i === paperIdx) continue;
+          if (counts[i] > nextBest) { nextBest = counts[i]; inkIdx = i; }
+        }
+        if (inkIdx === -1) inkIdx = (paperIdx === 0) ? 7 : 0;
+      }
+
+      const third = Math.floor(y / 64);
+      const line = y % 8;
+      const offset = Math.floor((y % 64) / 8);
+      const addrOffset = (third * 2048) + (line * 256) + (offset * 32);
+
+      spectrumScreenBytes[6144 + addrOffset + cellX] = (isBright ? 0x40 : 0x00) | (paperIdx << 3) | inkIdx;
+
+      const cPaper = SPECTRUM_COLORS[paletteOffset + paperIdx];
+      const cInk = SPECTRUM_COLORS[paletteOffset + inkIdx];
+
+      let lineByte = 0;
+      for (let x = 0; x < 8; x++) {
+        const p = linePixels[x];
+        const dPaper = colorDistanceFast(p.r, p.g, p.b, cPaper.r, cPaper.g, cPaper.b);
+        const dInk = colorDistanceFast(p.r, p.g, p.b, cInk.r, cInk.g, cInk.b);
+
+        const isInk = dInk < dPaper;
+        const finalColor = isInk ? cInk : cPaper;
+        if (isInk) lineByte |= (0x80 >> x);
+
+        if (dither) {
+          const errR = p.r - finalColor.r;
+          const errG = p.g - finalColor.g;
+          const errB = p.b - finalColor.b;
+          distributeError(pixelArray, p.absX + 1, y, errR, errG, errB, 7 / 16);
+        }
+      }
+      spectrumScreenBytes[addrOffset + cellX] = lineByte;
+    }
+
+    function processBitmap16ColorMode(pixelArray, dither, isMonochrome) {
+      const w = canvasWidth;
+      const h = canvasHeight;
+
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const idx = (y * w + x) * 4;
+          const r = pixelArray[idx], g = pixelArray[idx + 1], b = pixelArray[idx + 2];
+
+          let bestIdx = 0, bestDist = Infinity;
+          for (let i = 0; i < 16; i++) {
+            if (isMonochrome && i !== 0 && i !== 15) continue;
+            const sc = SPECTRUM_COLORS[i];
+            const d = colorDistanceFast(r, g, b, sc.r, sc.g, sc.b);
+            if (d < bestDist) { bestDist = d; bestIdx = i; }
+          }
+
+          const pixelIndex = y * w + x;
+          const byteAddr = pixelIndex >> 1;
+          if ((pixelIndex & 1) === 0) {
+            spectrumScreenBytes[byteAddr] = (bestIdx << 4);
+          } else {
+            spectrumScreenBytes[byteAddr] |= (bestIdx & 0x0F);
+          }
+
+          if (dither) {
+            const finalColor = SPECTRUM_COLORS[bestIdx];
+            const errR = r - finalColor.r;
+            const errG = g - finalColor.g;
+            const errB = b - finalColor.b;
+
+            distributeError(pixelArray, x + 1, y,     errR, errG, errB, 7 / 16);
+            distributeError(pixelArray, x - 1, y + 1, errR, errG, errB, 3 / 16);
+            distributeError(pixelArray, x,     y + 1, errR, errG, errB, 5 / 16);
+            distributeError(pixelArray, x + 1, y + 1, errR, errG, errB, 1 / 16);
+          }
+        }
+      }
+    }
+
     function distributeError(arr, x, y, errR, errG, errB, weight) {
-      if (x < 0 || x >= 256 || y < 0 || y >= 192) return;
-      const idx = (y * 256 + x) * 4;
+      if (x < 0 || x >= canvasWidth || y < 0 || y >= canvasHeight) return;
+      const idx = (y * canvasWidth + x) * 4;
       arr[idx]     = Math.min(255, Math.max(0, arr[idx]     + errR * weight));
       arr[idx + 1] = Math.min(255, Math.max(0, arr[idx + 1] + errG * weight));
       arr[idx + 2] = Math.min(255, Math.max(0, arr[idx + 2] + errB * weight));
     }
 
     // ----------------------------------------------------
-    // 4. BASIC EDITOR & COMPILER (TOKENIZER)
+    // 4. BASIC EDITOR & COMPILER
     // ----------------------------------------------------
     function tokenizeBasicLine(lineNum, text) {
       let out = [];
@@ -1281,8 +1550,7 @@
       out.push(lineNum & 0xFF);
 
       let lineLenIdx = out.length;
-      out.push(0); 
-      out.push(0);
+      out.push(0); out.push(0);
 
       let i = 0;
       let inString = false;
@@ -1376,10 +1644,7 @@
         return;
       }
 
-      // Automatically allow appending converted image if any raw image was ever uploaded
       const wantsImage = document.getElementById('basic-append-img').checked && globalRawImage !== null;
-      
-      // Robust Regex to match any Screen$ loader statement (LOAD "SCREEN" SCREEN$, LOAD "" SCREEN$, etc.)
       const hasScreenLoader = parsedLines.some(line => /LOAD\s+("[^"]*")?\s*SCREEN\$/i.test(line.text));
 
       let prependedLine = false;
@@ -1393,7 +1658,6 @@
         prependedLine = true;
       }
 
-      // Sort parsed lines to compile linearly
       const compileLines = parsedLines
         .sort((a, b) => a.num - b.num)
         .map(line => `${line.num} ${line.text}`);
@@ -1409,7 +1673,6 @@
         }
       }
 
-      // Autostart determination: use user custom choice or default to first compiled line
       let autostart = parseInt(document.getElementById('basic-autostart').value);
       if (isNaN(autostart)) {
         autostart = parsedLines.length > 0 ? parsedLines[0].num : 10;
@@ -1419,27 +1682,25 @@
         autostart = 1;
         document.getElementById('basic-autostart').value = '1';
       } else if (autostart > 9999) {
-        autostart = 32768; // Standard Sinclair signal for "No autostart"
+        autostart = 32768;
       }
 
       let filename = document.getElementById('basic-filename').value.trim();
       if (!filename) {
-        showCompileStatus("Error: Program Name cannot be blank. Please enter a name.", true);
+        showCompileStatus("Error: Program Name cannot be blank.", true);
         return;
       }
       filename = filename.padEnd(10, ' ').substring(0, 10).toUpperCase();
 
       const progHeader = new Uint8Array(21);
       progHeader[0] = 19; progHeader[1] = 0;
-      progHeader[2] = 0;
-      progHeader[3] = 0;
+      progHeader[2] = 0; progHeader[3] = 0;
       for (let i = 0; i < 10; i++) progHeader[4 + i] = filename.charCodeAt(i);
 
       let progLen = compiledBasicBytes.length;
       progHeader[14] = progLen & 0xFF; progHeader[15] = (progLen >> 8) & 0xFF;
       progHeader[16] = autostart & 0xFF; progHeader[17] = (autostart >> 8) & 0xFF;
       progHeader[18] = progLen & 0xFF; progHeader[19] = (progLen >> 8) & 0xFF;
-
       progHeader[20] = calculateChecksum(progHeader, 2, 18);
 
       const progDataLen = progLen + 2;
@@ -1451,11 +1712,9 @@
       }
       progData[3 + progLen] = calculateChecksum(progData, 2, progLen + 1);
 
-      // --- Swapped Output Order Logic ---
       let finalTapFiles = [];
 
       if (wantsImage) {
-        // Automatically extract target filename specified in the Sinclair BASIC code
         let imgName = "SCREEN";
         const nameMatch = document.getElementById('basic-code').value.match(/LOAD\s+"([^"]*)"\s*SCREEN\$/i);
         if (nameMatch && nameMatch[1].trim() !== "") {
@@ -1465,27 +1724,26 @@
         }
         imgName = imgName.padEnd(10, ' ').substring(0, 10).toUpperCase();
 
+        const dataLen = spectrumScreenBytes.length;
         const imgHeader = new Uint8Array(21);
         imgHeader[0] = 19; imgHeader[1] = 0;
-        imgHeader[2] = 0;
-        imgHeader[3] = 3; // Block Type: 3 (Bytes)
+        imgHeader[2] = 0; imgHeader[3] = 3;
         for (let i = 0; i < 10; i++) imgHeader[4 + i] = imgName.charCodeAt(i);
-        imgHeader[14] = 0x00; imgHeader[15] = 0x1b; // 6912 Bytes Length
-        imgHeader[16] = 0x00; imgHeader[17] = 0x40; // 16384 Start (Screen RAM)
-        imgHeader[18] = 0x00; imgHeader[19] = 0x80; // Unused parameter
+        imgHeader[14] = dataLen & 0xFF; imgHeader[15] = (dataLen >> 8) & 0xFF;
+        imgHeader[16] = 0x00; imgHeader[17] = 0x40;
+        imgHeader[18] = 0x00; imgHeader[19] = 0x80;
         imgHeader[20] = calculateChecksum(imgHeader, 2, 18);
 
-        const imgData = new Uint8Array(6916);
-        imgData[0] = 0x02; imgData[1] = 0x1b; // Block size prefix
-        imgData[2] = 0xFF; // Data Flag Byte
-        for (let i = 0; i < 6912; i++) imgData[3 + i] = spectrumScreenBytes[i];
-        imgData[6915] = calculateChecksum(imgData, 2, 6913);
+        const imgData = new Uint8Array(4 + dataLen);
+        const blockLen = dataLen + 2;
+        imgData[0] = blockLen & 0xFF; imgData[1] = (blockLen >> 8) & 0xFF;
+        imgData[2] = 0xFF;
+        for (let i = 0; i < dataLen; i++) imgData[3 + i] = spectrumScreenBytes[i];
+        imgData[3 + dataLen] = calculateChecksum(imgData, 2, dataLen + 1);
 
-        // Push Image blocks FIRST (Blocks 1 and 2)
         finalTapFiles.push(imgHeader, imgData);
       }
 
-      // Push Program blocks SECOND (Blocks 3 and 4)
       finalTapFiles.push(progHeader, progData);
 
       let totalSize = finalTapFiles.reduce((acc, val) => acc + val.length, 0);
@@ -1508,8 +1766,581 @@
     }
 
 
+    function showAsmStatus(message, isError) {
+      const statusBox = document.getElementById('asm-compile-status');
+      if (!statusBox) return;
+      statusBox.textContent = message;
+      statusBox.className = 'compile-status-box ' + (isError ? 'compile-status-error' : 'compile-status-success');
+      statusBox.style.display = 'block';
+      clearTimeout(showAsmStatus._timer);
+      showAsmStatus._timer = setTimeout(() => {
+        statusBox.style.display = 'none';
+      }, 6000);
+    }
+
+    function asmStripComment(line) {
+      let inString = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        const next = line[i + 1];
+        if (ch === '"' && line[i - 1] !== '\\') {
+          inString = !inString;
+          continue;
+        }
+        if (!inString && ch === ';') return line.slice(0, i);
+        if (!inString && ch === '/' && next === '/') return line.slice(0, i);
+      }
+      return line;
+    }
+
+    function asmSplitArgs(text) {
+      const parts = [];
+      let current = '';
+      let depth = 0;
+      let inString = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (ch === '"' && text[i - 1] !== '\\') {
+          inString = !inString;
+          current += ch;
+          continue;
+        }
+        if (!inString) {
+          if (ch === '(') depth++;
+          if (ch === ')') depth = Math.max(0, depth - 1);
+          if (ch === ',' && depth === 0) {
+            if (current.trim()) parts.push(current.trim());
+            current = '';
+            continue;
+          }
+        }
+        current += ch;
+      }
+      if (current.trim()) parts.push(current.trim());
+      return parts;
+    }
+
+    function asmDecodeStringLiteral(token) {
+      const raw = token.trim();
+      if (!(raw.startsWith('"') && raw.endsWith('"'))) return null;
+      let s = raw.slice(1, -1);
+      s = s.replace(/\\\\/g, '\\').replace(/\\"/g, '"')
+           .replace(/\\n/g, '\n').replace(/\\r/g, '\r').replace(/\\t/g, '\t');
+      return s;
+    }
+
+    function asmEvalExpr(expr, symbols, currentAddr = 0) {
+      let s = (expr || '').trim();
+      if (!s) throw new Error('Empty expression');
+
+      s = s.replace(/\bLOW\s*\(/gi, 'low(').replace(/\bHIGH\s*\(/gi, 'high(');
+      s = s.replace(/\$([0-9A-Fa-f]+)/g, '0x$1');
+      s = s.replace(/#([0-9A-Fa-f]+)/g, '0x$1');
+      s = s.replace(/\b([0-9A-Fa-f]+)h\b/gi, '0x$1');
+      s = s.replace(/\$(?![0-9A-Fa-f])/g, String(currentAddr));
+
+      s = s.replace(/\b([A-Za-z_][A-Za-z0-9_]*)\b/g, (match) => {
+        const key = match.toUpperCase();
+        if (key === 'LOW' || key === 'HIGH') return match.toLowerCase();
+        if (Object.prototype.hasOwnProperty.call(symbols, key)) return String(symbols[key]);
+        return match;
+      });
+
+      if (/[^0-9xXa-fA-F+\-*/%&|^~()<>,.\s]/.test(s)) {
+        throw new Error(`Invalid expression: ${expr}`);
+      }
+
+      const low = (v) => v & 0xFF;
+      const high = (v) => (v >> 8) & 0xFF;
+      const value = Function('low', 'high', `"use strict"; return (${s});`)(low, high);
+      if (!Number.isFinite(value)) throw new Error(`Invalid expression: ${expr}`);
+      return value;
+    }
+
+    function asmNormalizeToken(token) {
+      return token.trim().replace(/\s+/g, '').toUpperCase();
+    }
+
+    function asmIsAbsMem(token) {
+      const t = asmNormalizeToken(token);
+      return t.startsWith('(') && t.endsWith(')') && !['(HL)', '(BC)', '(DE)'].includes(t);
+    }
+
+    function asmMemExpr(token) {
+      return token.trim().replace(/^\(/, '').replace(/\)$/, '').trim();
+    }
+
+    function asmEmitWord(value) {
+      const v = value & 0xFFFF;
+      return [v & 0xFF, (v >> 8) & 0xFF];
+    }
+
+    function asmEstimateSize(op, rest) {
+      const uop = op.toUpperCase();
+
+      if (uop === 'ORG' || uop === 'EQU') return 0;
+
+      if (['DB', 'DEFB', 'DEFM'].includes(uop)) {
+        let size = 0;
+        for (const part of asmSplitArgs(rest)) {
+          const s = asmDecodeStringLiteral(part);
+          size += (s !== null) ? s.length : 1;
+        }
+        return size;
+      }
+
+      if (['DW', 'DEFW'].includes(uop)) return asmSplitArgs(rest).length * 2;
+
+      if (['DS', 'DEFS'].includes(uop)) {
+        const first = asmSplitArgs(rest)[0] || '0';
+        return Math.max(0, parseInt(first, 10) || 0);
+      }
+
+      if (['NOP', 'RET', 'RETN', 'RETI', 'HALT', 'DI', 'EI', 'EXX', 'DAA', 'SCF', 'CCF', 'CPL', 'RLCA', 'RRCA', 'RLA', 'RRA', 'EXDEHL', 'SPHL', 'JP_HL'].includes(uop)) return 1;
+      if (uop === 'RST') return 1;
+      if (uop === 'JR' || uop === 'DJNZ') return 2;
+      if (uop === 'JP' || uop === 'CALL') return 3;
+      if (uop === 'OUT' || uop === 'IN') return 2;
+      if (uop === 'PUSH' || uop === 'POP' || uop === 'INC16' || uop === 'DEC16') return 1;
+
+      if (['ADD', 'ADC', 'SBC', 'SUB', 'AND', 'XOR', 'OR', 'CP'].includes(uop)) {
+        const args = asmSplitArgs(rest);
+        if (args.length === 1) {
+          const op1 = asmNormalizeToken(args[0]);
+          return ['B','C','D','E','H','L','A','(HL)'].includes(op1) ? 1 : 2;
+        }
+        if (args.length === 2) {
+          const a = asmNormalizeToken(args[0]);
+          const b = asmNormalizeToken(args[1]);
+          if (a === 'HL' && ['BC','DE','HL','SP'].includes(b)) return (uop === 'ADD') ? 1 : 2;
+          return ['B','C','D','E','H','L','A','(HL)'].includes(b) ? 1 : 2;
+        }
+      }
+
+      if (uop === 'LD') {
+        const args = asmSplitArgs(rest);
+        if (args.length !== 2) throw new Error(`Unsupported LD form: ${rest}`);
+        const dst = asmNormalizeToken(args[0]);
+        const src = asmNormalizeToken(args[1]);
+
+        if ((dst === 'SP' && src === 'HL') || (dst === 'HL' && src === 'SP')) return 1;
+        if (dst === '(HL)' && src === 'A') return 1;
+        if (dst === 'A' && src === '(HL)') return 1;
+        if (['(BC)','(DE)'].includes(dst) && src === 'A') return 1;
+        if (dst === 'A' && ['(BC)','(DE)'].includes(src)) return 1;
+        if (asmIsAbsMem(args[0]) && ['A','HL','BC','DE','SP'].includes(src)) return (src === 'A' || src === 'HL') ? 3 : 4;
+        if (asmIsAbsMem(args[1]) && ['A','HL','BC','DE','SP'].includes(dst)) return (dst === 'A' || dst === 'HL') ? 3 : 4;
+        if (['B','C','D','E','H','L','A','(HL)'].includes(dst) && ['B','C','D','E','H','L','A','(HL)'].includes(src)) return 1;
+        if (['B','C','D','E','H','L','A','(HL)'].includes(dst) && !['B','C','D','E','H','L','A','(HL)'].includes(src)) return 2;
+        if (['BC','DE','HL','SP'].includes(dst) && !['B','C','D','E','H','L','A','(HL)'].includes(src)) return 3;
+      }
+
+      throw new Error(`Unsupported or unknown instruction: ${op} ${rest}`);
+    }
+
+    function asmParseLines(source, origin) {
+      const rawLines = source.split(/\\r?\\n/);
+      const symbols = {};
+      const items = [];
+      let pc = origin;
+
+      for (let i = 0; i < rawLines.length; i++) {
+        let line = asmStripComment(rawLines[i]).trim();
+        if (!line) continue;
+
+        while (true) {
+          const labelMatch = line.match(/^([A-Za-z_][A-Za-z0-9_]*)\\s*:\\s*(.*)$/);
+          if (!labelMatch) break;
+          symbols[labelMatch[1].toUpperCase()] = pc;
+          line = labelMatch[2].trim();
+          if (!line) break;
+        }
+        if (!line) continue;
+
+        const equMatch = line.match(/^([A-Za-z_][A-Za-z0-9_]*)\\s*(?:EQU|=)\\s*(.+)$/i);
+        if (equMatch) {
+          symbols[equMatch[1].toUpperCase()] = asmEvalExpr(equMatch[2], symbols, pc);
+          continue;
+        }
+
+        const opMatch = line.match(/^([A-Za-z.][A-Za-z0-9._]*)\\b\\s*(.*)$/);
+        if (!opMatch) throw new Error(`Line ${i + 1}: Cannot parse line "${rawLines[i]}"`);
+
+        const op = opMatch[1].toUpperCase();
+        const rest = opMatch[2].trim();
+        items.push({ lineNumber: i + 1, pc, op, rest, raw: rawLines[i] });
+
+        if (op === 'ORG') {
+          const newPc = asmEvalExpr(rest, symbols, pc);
+          if (newPc < pc) throw new Error(`Line ${i + 1}: ORG cannot move backward`);
+          pc = newPc;
+          continue;
+        }
+
+        pc += asmEstimateSize(op, rest);
+      }
+
+      return { symbols, items, origin };
+    }
+
+    function asmEmitDirectiveBytes(op, rest, symbols, pc) {
+      const uop = op.toUpperCase();
+      const out = [];
+
+      if (['DB', 'DEFB', 'DEFM'].includes(uop)) {
+        for (const part of asmSplitArgs(rest)) {
+          const s = asmDecodeStringLiteral(part);
+          if (s !== null) {
+            for (let i = 0; i < s.length; i++) out.push(s.charCodeAt(i) & 0xFF);
+          } else {
+            out.push(asmEvalExpr(part, symbols, pc) & 0xFF);
+          }
+        }
+        return out;
+      }
+
+      if (['DW', 'DEFW'].includes(uop)) {
+        for (const part of asmSplitArgs(rest)) {
+          out.push(...asmEmitWord(asmEvalExpr(part, symbols, pc)));
+        }
+        return out;
+      }
+
+      if (['DS', 'DEFS'].includes(uop)) {
+        const parts = asmSplitArgs(rest);
+        const count = Math.max(0, asmEvalExpr(parts[0] || '0', symbols, pc) | 0);
+        const fill = parts.length > 1 ? (asmEvalExpr(parts[1], symbols, pc) & 0xFF) : 0;
+        return new Array(count).fill(fill);
+      }
+
+      throw new Error(`Unsupported directive: ${op}`);
+    }
+
+    function asmEmitInstruction(op, rest, symbols, pc) {
+      const uop = op.toUpperCase();
+      const args = asmSplitArgs(rest);
+      const r8 = { B: 0, C: 1, D: 2, E: 3, H: 4, L: 5, '(HL)': 6, A: 7 };
+      const r16 = { BC: 0, DE: 1, HL: 2, SP: 3 };
+      const condJP = { NZ: 0, Z: 1, NC: 2, C: 3 };
+
+      if (uop === 'NOP') return [0x00];
+      if (uop === 'RET') return [0xC9];
+      if (uop === 'RETN') return [0xED, 0x45];
+      if (uop === 'RETI') return [0xED, 0x4D];
+      if (uop === 'HALT') return [0x76];
+      if (uop === 'DI') return [0xF3];
+      if (uop === 'EI') return [0xFB];
+      if (uop === 'EXX') return [0xD9];
+      if (uop === 'DAA') return [0x27];
+      if (uop === 'SCF') return [0x37];
+      if (uop === 'CCF') return [0x3F];
+      if (uop === 'CPL') return [0x2F];
+      if (uop === 'RLCA') return [0x07];
+      if (uop === 'RRCA') return [0x0F];
+      if (uop === 'RLA') return [0x17];
+      if (uop === 'RRA') return [0x1F];
+      if (uop === 'JP_HL') return [0xE9];
+      if (uop === 'SPHL') return [0xF9];
+      if (uop === 'EXDEHL') return [0xEB];
+
+      if (uop === 'EX') {
+        const a = asmNormalizeToken(args[0] || '');
+        const b = asmNormalizeToken(args[1] || '');
+        if (a === 'DE' && b === 'HL') return [0xEB];
+        if (a === 'AF' && b === "AF'") return [0x08];
+        throw new Error(`Unsupported EX form: ${rest}`);
+      }
+
+      if (uop === 'RST') {
+        const v = asmEvalExpr(args[0], symbols, pc) & 0x38;
+        if ((v & 0x07) !== 0) throw new Error(`RST target must be a multiple of 8: ${args[0]}`);
+        return [0xC7 + v];
+      }
+
+      if (uop === 'JR' || uop === 'DJNZ') {
+        let opcode = (uop === 'DJNZ') ? 0x10 : 0x18;
+        let targetExpr = args[0];
+        if (uop === 'JR' && args.length === 2) {
+          const cond = asmNormalizeToken(args[0]);
+          const map = { NZ: 0x20, Z: 0x28, NC: 0x30, C: 0x38 };
+          if (!Object.prototype.hasOwnProperty.call(map, cond)) throw new Error(`Unsupported JR condition: ${args[0]}`);
+          opcode = map[cond];
+          targetExpr = args[1];
+        }
+        const target = asmEvalExpr(targetExpr, symbols, pc);
+        const offset = target - (pc + 2);
+        if (offset < -128 || offset > 127) throw new Error(`JR target out of range: ${targetExpr}`);
+        return [opcode, offset & 0xFF];
+      }
+
+      if (uop === 'JP' || uop === 'CALL') {
+        let opcode = (uop === 'JP') ? 0xC3 : 0xCD;
+        let targetExpr = args[0];
+        if (args.length === 2) {
+          const cond = asmNormalizeToken(args[0]);
+          if (!Object.prototype.hasOwnProperty.call(condJP, cond)) throw new Error(`Unsupported condition: ${args[0]}`);
+          opcode = (uop === 'JP')
+            ? { NZ: 0xC2, Z: 0xCA, NC: 0xD2, C: 0xDA }[cond]
+            : { NZ: 0xC4, Z: 0xCC, NC: 0xD4, C: 0xDC }[cond];
+          targetExpr = args[1];
+        }
+        const target = asmEvalExpr(targetExpr, symbols, pc);
+        return [opcode, ...asmEmitWord(target)];
+      }
+
+      if (uop === 'OUT') {
+        const p = asmNormalizeToken(args[0] || '');
+        const v = asmNormalizeToken(args[1] || '');
+        if (v !== 'A') throw new Error('Only OUT (n),A is supported');
+        return [0xD3, asmEvalExpr(asmMemExpr(args[0]), symbols, pc) & 0xFF];
+      }
+
+      if (uop === 'IN') {
+        const d = asmNormalizeToken(args[0] || '');
+        if (d !== 'A') throw new Error('Only IN A,(n) is supported');
+        return [0xDB, asmEvalExpr(asmMemExpr(args[1]), symbols, pc) & 0xFF];
+      }
+
+      if (uop === 'PUSH' || uop === 'POP') {
+        const rr = asmNormalizeToken(args[0] || '');
+        const map = uop === 'PUSH'
+          ? { BC: 0xC5, DE: 0xD5, HL: 0xE5, AF: 0xF5 }
+          : { BC: 0xC1, DE: 0xD1, HL: 0xE1, AF: 0xF1 };
+        if (!Object.prototype.hasOwnProperty.call(map, rr)) throw new Error(`Unsupported ${uop} register pair: ${args[0]}`);
+        return [map[rr]];
+      }
+
+      if (uop === 'INC' || uop === 'DEC') {
+        const t = asmNormalizeToken(args[0] || '');
+        const one = uop === 'INC'
+          ? { B: 0x04, C: 0x0C, D: 0x14, E: 0x1C, H: 0x24, L: 0x2C, '(HL)': 0x34, A: 0x3C }
+          : { B: 0x05, C: 0x0D, D: 0x15, E: 0x1D, H: 0x25, L: 0x2D, '(HL)': 0x35, A: 0x3D };
+        const pair = uop === 'INC'
+          ? { BC: 0x03, DE: 0x13, HL: 0x23, SP: 0x33 }
+          : { BC: 0x0B, DE: 0x1B, HL: 0x2B, SP: 0x3B };
+        if (Object.prototype.hasOwnProperty.call(one, t)) return [one[t]];
+        if (Object.prototype.hasOwnProperty.call(pair, t)) return [pair[t]];
+        throw new Error(`Unsupported ${uop} target: ${args[0]}`);
+      }
+
+      if (['ADD', 'ADC', 'SBC', 'SUB', 'AND', 'XOR', 'OR', 'CP'].includes(uop)) {
+        const isReg8 = (t) => Object.prototype.hasOwnProperty.call(r8, t);
+
+        if (uop === 'ADD' && args.length === 2) {
+          const a = asmNormalizeToken(args[0]);
+          const b = asmNormalizeToken(args[1]);
+          if (a === 'HL' && Object.prototype.hasOwnProperty.call(r16, b)) {
+            return [0x09 + (r16[b] * 0x10)];
+          }
+          if (a === 'A' && isReg8(b)) return [0x80 + r8[b]];
+          return [0xC6, asmEvalExpr(args[1], symbols, pc) & 0xFF];
+        }
+
+        if ((uop === 'ADC' || uop === 'SBC') && args.length === 2) {
+          const a = asmNormalizeToken(args[0]);
+          const b = asmNormalizeToken(args[1]);
+          if (a === 'HL' && Object.prototype.hasOwnProperty.call(r16, b)) {
+            return [0xED, (uop === 'ADC' ? 0x4A : 0x42) + (r16[b] * 0x10)];
+          }
+          if (a === 'A' && isReg8(b)) {
+            return [(uop === 'ADC' ? 0x88 : 0x98) + r8[b]];
+          }
+          return [uop === 'ADC' ? 0xCE : 0xDE, asmEvalExpr(args[1], symbols, pc) & 0xFF];
+        }
+
+        if (['AND', 'XOR', 'OR', 'CP', 'SUB'].includes(uop)) {
+          const regBase = { AND: 0xA0, XOR: 0xA8, OR: 0xB0, CP: 0xB8, SUB: 0x90 }[uop];
+          const immBase = { AND: 0xE6, XOR: 0xEE, OR: 0xF6, CP: 0xFE, SUB: 0xD6 }[uop];
+
+          if (args.length === 1) {
+            const t = asmNormalizeToken(args[0]);
+            if (isReg8(t)) return [regBase + r8[t]];
+            return [immBase, asmEvalExpr(args[0], symbols, pc) & 0xFF];
+          }
+
+          if (args.length === 2) {
+            const a = asmNormalizeToken(args[0]);
+            const b = asmNormalizeToken(args[1]);
+            if (a === 'A' && isReg8(b)) return [regBase + r8[b]];
+            return [immBase, asmEvalExpr(args[1], symbols, pc) & 0xFF];
+          }
+        }
+      }
+
+      if (uop === 'LD') {
+        if (args.length !== 2) throw new Error(`Unsupported LD form: ${rest}`);
+        const lhs = args[0];
+        const rhs = args[1];
+        const dst = asmNormalizeToken(lhs);
+        const src = asmNormalizeToken(rhs);
+        const reg8 = { B: 0, C: 1, D: 2, E: 3, H: 4, L: 5, '(HL)': 6, A: 7 };
+        const reg16 = { BC: 0, DE: 1, HL: 2, SP: 3 };
+
+        if ((dst === 'SP' && src === 'HL') || (dst === 'HL' && src === 'SP')) return [0xF9];
+
+        if (dst === '(HL)' && src === 'A') return [0x77];
+        if (dst === 'A' && src === '(HL)') return [0x7E];
+        if (dst === '(BC)' && src === 'A') return [0x02];
+        if (dst === '(DE)' && src === 'A') return [0x12];
+        if (dst === 'A' && src === '(BC)') return [0x0A];
+        if (dst === 'A' && src === '(DE)') return [0x1A];
+
+        if (asmIsAbsMem(lhs) && src === 'A') return [0x32, ...asmEmitWord(asmEvalExpr(asmMemExpr(lhs), symbols, pc))];
+        if (asmIsAbsMem(rhs) && dst === 'A') return [0x3A, ...asmEmitWord(asmEvalExpr(asmMemExpr(rhs), symbols, pc))];
+        if (asmIsAbsMem(lhs) && src === 'HL') return [0x22, ...asmEmitWord(asmEvalExpr(asmMemExpr(lhs), symbols, pc))];
+        if (asmIsAbsMem(rhs) && dst === 'HL') return [0x2A, ...asmEmitWord(asmEvalExpr(asmMemExpr(rhs), symbols, pc))];
+        if (asmIsAbsMem(lhs) && src === 'BC') return [0xED, 0x43, ...asmEmitWord(asmEvalExpr(asmMemExpr(lhs), symbols, pc))];
+        if (asmIsAbsMem(lhs) && src === 'DE') return [0xED, 0x53, ...asmEmitWord(asmEvalExpr(asmMemExpr(lhs), symbols, pc))];
+        if (asmIsAbsMem(lhs) && src === 'SP') return [0xED, 0x73, ...asmEmitWord(asmEvalExpr(asmMemExpr(lhs), symbols, pc))];
+        if (asmIsAbsMem(rhs) && dst === 'BC') return [0xED, 0x4B, ...asmEmitWord(asmEvalExpr(asmMemExpr(rhs), symbols, pc))];
+        if (asmIsAbsMem(rhs) && dst === 'DE') return [0xED, 0x5B, ...asmEmitWord(asmEvalExpr(asmMemExpr(rhs), symbols, pc))];
+        if (asmIsAbsMem(rhs) && dst === 'SP') return [0xED, 0x7B, ...asmEmitWord(asmEvalExpr(asmMemExpr(rhs), symbols, pc))];
+
+        if (Object.prototype.hasOwnProperty.call(reg8, dst) && Object.prototype.hasOwnProperty.call(reg8, src)) {
+          if (dst === '(HL)' && src === '(HL)') throw new Error('LD (HL),(HL) is invalid');
+          return [0x40 + (reg8[dst] * 8) + reg8[src]];
+        }
+
+        if (Object.prototype.hasOwnProperty.call(reg8, dst) && !Object.prototype.hasOwnProperty.call(reg8, src)) {
+          const opTable = { B: 0x06, C: 0x0E, D: 0x16, E: 0x1E, H: 0x26, L: 0x2E, A: 0x3E, '(HL)': 0x36 };
+          if (Object.prototype.hasOwnProperty.call(opTable, dst)) return [opTable[dst], asmEvalExpr(rhs, symbols, pc) & 0xFF];
+        }
+
+        if (Object.prototype.hasOwnProperty.call(reg16, dst) && !src.startsWith('(')) {
+          const opTable = { BC: 0x01, DE: 0x11, HL: 0x21, SP: 0x31 };
+          if (Object.prototype.hasOwnProperty.call(opTable, dst)) return [opTable[dst], ...asmEmitWord(asmEvalExpr(rhs, symbols, pc))];
+        }
+
+        throw new Error(`Unsupported LD form: ${rest}`);
+      }
+
+      throw new Error(`Unsupported or unknown instruction: ${op} ${rest}`);
+    }
+
+    function assembleAsmSource(source, origin) {
+      const parsed = asmParseLines(source, origin);
+      const bytes = [];
+      let pc = origin;
+
+      for (const item of parsed.items) {
+        if (item.op === 'ORG') {
+          const newPc = asmEvalExpr(item.rest, parsed.symbols, pc);
+          if (newPc < pc) throw new Error(`Line ${item.lineNumber}: ORG cannot move backward`);
+          while (pc < newPc) {
+            bytes.push(0x00);
+            pc++;
+          }
+          continue;
+        }
+
+        let emitted = [];
+        const uop = item.op.toUpperCase();
+        if (['DB', 'DEFB', 'DEFM', 'DW', 'DEFW', 'DS', 'DEFS'].includes(uop)) {
+          emitted = asmEmitDirectiveBytes(uop, item.rest, parsed.symbols, pc);
+        } else {
+          emitted = asmEmitInstruction(uop, item.rest, parsed.symbols, pc);
+        }
+
+        bytes.push(...emitted);
+        pc += emitted.length;
+      }
+
+      return { bytes: Uint8Array.from(bytes), symbols: parsed.symbols };
+    }
+
+    function createTapHeaderBlock(fileType, filename, dataLength, param1, param2) {
+      const header = new Uint8Array(21);
+      header[0] = 19; header[1] = 0;
+      header[2] = 0;
+      header[3] = fileType & 0xFF;
+      const cleanName = (filename || 'NONAME').padEnd(10, ' ').substring(0, 10).toUpperCase();
+      for (let i = 0; i < 10; i++) header[4 + i] = cleanName.charCodeAt(i);
+      header[14] = dataLength & 0xFF;
+      header[15] = (dataLength >> 8) & 0xFF;
+      header[16] = param1 & 0xFF;
+      header[17] = (param1 >> 8) & 0xFF;
+      header[18] = param2 & 0xFF;
+      header[19] = (param2 >> 8) & 0xFF;
+      header[20] = calculateChecksum(header, 2, 18);
+      return header;
+    }
+
+    function createTapDataBlock(flagByte, payloadBytes) {
+      const bodyLen = payloadBytes.length + 2;
+      const block = new Uint8Array(2 + bodyLen);
+      block[0] = bodyLen & 0xFF;
+      block[1] = (bodyLen >> 8) & 0xFF;
+      block[2] = flagByte & 0xFF;
+      for (let i = 0; i < payloadBytes.length; i++) block[3 + i] = payloadBytes[i];
+      block[3 + payloadBytes.length] = calculateChecksum(block, 2, payloadBytes.length + 1);
+      return block;
+    }
+
+    function concatUint8Arrays(chunks) {
+      const total = chunks.reduce((sum, arr) => sum + arr.length, 0);
+      const out = new Uint8Array(total);
+      let offset = 0;
+      for (const chunk of chunks) {
+        out.set(chunk, offset);
+        offset += chunk.length;
+      }
+      return out;
+    }
+
+    function compileAsmToTap() {
+      const source = document.getElementById('asm-code').value || '';
+      const originRaw = parseInt(document.getElementById('asm-origin').value, 10);
+      const runRaw = parseInt(document.getElementById('asm-runaddr').value, 10);
+      const origin = Number.isFinite(originRaw) ? originRaw : 32768;
+      const runAddr = Number.isFinite(runRaw) ? runRaw : origin;
+
+      let filename = document.getElementById('asm-filename').value.trim();
+      if (!filename) filename = 'ASMCODE';
+      filename = filename.padEnd(10, ' ').substring(0, 10).toUpperCase();
+
+      if (!source.trim()) {
+        showAsmStatus('Error: Assembly source is blank.', true);
+        return;
+      }
+
+      try {
+        const assembled = assembleAsmSource(source, origin);
+        const codeBytes = assembled.bytes;
+        if (codeBytes.length === 0) throw new Error('No machine code was generated.');
+
+        const includeLoader = document.getElementById('asm-autoload').checked;
+        const tapBlocks = [];
+
+        if (includeLoader) {
+          const loaderText = `CLEAR ${Math.max(0, origin - 1)}: LOAD "" CODE: RANDOMIZE USR ${runAddr}`;
+          const loaderBytes = tokenizeBasicLine(10, loaderText).slice();
+          const loaderHeader = createTapHeaderBlock(0, 'ASMLOAD', loaderBytes.length, 10, loaderBytes.length);
+          const loaderData = createTapDataBlock(0xFF, Uint8Array.from(loaderBytes));
+          tapBlocks.push(loaderHeader, loaderData);
+        }
+
+        const codeHeader = createTapHeaderBlock(3, filename, codeBytes.length, origin, codeBytes.length);
+        const codeData = createTapDataBlock(0xFF, codeBytes);
+        tapBlocks.push(codeHeader, codeData);
+
+        const tapFile = concatUint8Arrays(tapBlocks);
+        const blob = new Blob([tapFile], { type: 'application/octet-stream' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${filename.trim() || 'ASMCODE'}.tap`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        showAsmStatus(`ASM compiled successfully. ${codeBytes.length} bytes assembled from origin ${origin}.`, false);
+      } catch (err) {
+        showAsmStatus(`ASM compile error: ${err.message}`, true);
+      }
+    }
+
     // ----------------------------------------------------
-    // 5. TAP TAPE FILE GENERATION (SCREEN ONLY EXPORT)
+    // 5. TAP FILE EXPORT
     // ----------------------------------------------------
     function getCleanFilename(inputId) {
       let f = document.getElementById(inputId).value.trim();
@@ -1518,25 +2349,25 @@
     }
 
     function exportConvertedToTap() {
+      const dataLen = spectrumScreenBytes.length;
       const header = new Uint8Array(21);
       header[0] = 19; header[1] = 0;
-      header[2] = 0; 
-      header[3] = 3; 
+      header[2] = 0; header[3] = 3; 
       
       const name = getCleanFilename('tap-filename');
       for (let i = 0; i < 10; i++) header[4 + i] = name.charCodeAt(i);
       
-      header[14] = 0x00; header[15] = 0x1b; 
+      header[14] = dataLen & 0xFF; header[15] = (dataLen >> 8) & 0xFF; 
       header[16] = 0x00; header[17] = 0x40; 
       header[18] = 0x00; header[19] = 0x80;
-      
       header[20] = calculateChecksum(header, 2, 18);
 
-      const data = new Uint8Array(6916);
-      data[0] = 0x02; data[1] = 0x1b; 
+      const blockLen = dataLen + 2;
+      const data = new Uint8Array(4 + dataLen);
+      data[0] = blockLen & 0xFF; data[1] = (blockLen >> 8) & 0xFF; 
       data[2] = 0xff; 
-      for (let i = 0; i < 6912; i++) data[3 + i] = spectrumScreenBytes[i];
-      data[6915] = calculateChecksum(data, 2, 6913);
+      for (let i = 0; i < dataLen; i++) data[3 + i] = spectrumScreenBytes[i];
+      data[3 + dataLen] = calculateChecksum(data, 2, dataLen + 1);
 
       const tapFile = new Uint8Array(header.length + data.length);
       tapFile.set(header, 0);
@@ -1552,7 +2383,7 @@
     }
 
     // ----------------------------------------------------
-    // 6. CASSETTE LOADER SIMULATOR & AUDIO SYNTH ENGINE
+    // 6. SIMULATOR & AUDIO SYNTHESIS
     // ----------------------------------------------------
     function handleTapUpload(e) {
       const file = e.target.files[0];
@@ -1598,12 +2429,6 @@
 
       const status = document.getElementById('tape-status');
       status.textContent = `Loaded ${activeTapeBlocks.length} Blocks`;
-      
-      const screenBlock = activeTapeBlocks.find(b => b.size === 6914);
-      if (screenBlock) {
-        status.textContent += " (Screen$ Found)";
-        clearSpectrumDisplay();
-      }
     }
 
     function initSimulatorAudioContext() {
@@ -1649,19 +2474,20 @@
 
     function generateTapeFromCurrentImage() {
       activeTapeBlocks = [];
+      const dataLen = spectrumScreenBytes.length;
+
       const header = new Uint8Array(19);
-      header[0] = 0x00; 
-      header[1] = 0x03; 
+      header[0] = 0x00; header[1] = 0x03; 
       const name = getCleanFilename('tap-filename');
       for (let i = 0; i < 10; i++) header[2 + i] = name.charCodeAt(i);
-      header[12] = 0x00; header[13] = 0x1b; 
+      header[12] = dataLen & 0xFF; header[13] = (dataLen >> 8) & 0xFF; 
       header[14] = 0x00; header[15] = 0x40; 
       activeTapeBlocks.push({ data: header, type: 0, description: "Header Block", size: 19 });
 
-      const data = new Uint8Array(6914);
+      const data = new Uint8Array(2 + dataLen);
       data[0] = 0xff; 
-      for (let i = 0; i < 6912; i++) data[1 + i] = spectrumScreenBytes[i];
-      activeTapeBlocks.push({ data: data, type: 255, description: "Screen$ Data", size: 6914 });
+      for (let i = 0; i < dataLen; i++) data[1 + i] = spectrumScreenBytes[i];
+      activeTapeBlocks.push({ data: data, type: 255, description: "Screen Data", size: dataLen + 2 });
     }
 
     function runSimulatorTick() {
@@ -1682,7 +2508,7 @@
 
       if (activeBlock.type === 255) {
         targetElement.textContent = `Data Block: ${simByteIndex} / ${activeBlock.size - 2} Bytes`;
-        const percentage = (simByteIndex / (activeBlock.size - 2)) * 100;
+        const percentage = (simByteIndex / Math.max(1, activeBlock.size - 2)) * 100;
         document.getElementById('tape-progress-bar').style.width = `${percentage}%`;
       } else {
         targetElement.textContent = `${activeBlock.description}: ${simByteIndex} / ${activeBlock.size} Bytes`;
@@ -1703,14 +2529,13 @@
             queuePulse(SECOND_SYNC_PULSE_TSTATES, speedMult);
             simInPilot = false;
             simByteIndex = 0;
-            if (activeBlock.type === 255 && activeBlock.size === 6914) clearSpectrumDisplay();
+            if (activeBlock.type === 255) clearSpectrumDisplay();
           }
         } else {
           if (simByteIndex < activeBlock.data.length) {
             const byteVal = activeBlock.data[simByteIndex];
             
-            // Draw bytes live ONLY if it's the exact standard Screen$ size (6912 body)
-            if (activeBlock.type === 255 && activeBlock.size === 6914 && simByteIndex > 0 && simByteIndex <= 6912) {
+            if (activeBlock.type === 255 && simByteIndex > 0 && (simByteIndex - 1) < spectrumScreenBytes.length) {
               spectrumScreenBytes[simByteIndex - 1] = byteVal;
               if (simByteIndex % 32 === 0) renderLineProgress(simByteIndex);
             }
@@ -1773,7 +2598,7 @@
     }
 
     // ----------------------------------------------------
-    // 7. SYNTHETIC .WAV EXPORTER (OfflineContext Rendering)
+    // 7. SYNTHETIC .WAV EXPORTER
     // ----------------------------------------------------
     function exportTapeToWav() {
       if (activeTapeBlocks.length === 0) generateTapeFromCurrentImage();
@@ -1900,7 +2725,7 @@
     }
 
     // ----------------------------------------------------
-    // 8. REAL WAV TAPE AUDIO DECODER (Schmitt Trigger API)
+    // 8. REAL WAV TAPE AUDIO DECODER
     // ----------------------------------------------------
     let liveDecodeState = { audioBuffer: null, abort: false };
 
@@ -1995,19 +2820,19 @@
                   currentBitIndex--;
 
                   if (currentBitIndex < 0) {
-                    if (dataBytesLoaded < 6912) {
+                    if (dataBytesLoaded < spectrumScreenBytes.length) {
                       spectrumScreenBytes[dataBytesLoaded] = currentByte;
                       if (dataBytesLoaded % 32 === 0) {
                         renderLineProgress(dataBytesLoaded);
-                        document.getElementById('decode-progress').textContent = `${dataBytesLoaded} / 6912 Bytes`;
-                        document.getElementById('decode-progress-bar').style.width = `${(dataBytesLoaded / 6912) * 100}%`;
+                        document.getElementById('decode-progress').textContent = `${dataBytesLoaded} / ${spectrumScreenBytes.length} Bytes`;
+                        document.getElementById('decode-progress-bar').style.width = `${(dataBytesLoaded / spectrumScreenBytes.length) * 100}%`;
                       }
                     }
                     dataBytesLoaded++;
                     currentByte = 0; currentBitIndex = 7;
                     borderViewport.style.backgroundColor = BORDER_HEX_COLORS[(dataBytesLoaded % 2 === 0) ? 2 : 5];
 
-                    if (dataBytesLoaded >= 6912) {
+                    if (dataBytesLoaded >= spectrumScreenBytes.length) {
                       isDecodingData = false;
                       document.getElementById('decode-status').textContent = "DECODE COMPLETE";
                       renderScrBufferToCanvas();
@@ -2024,7 +2849,7 @@
 
         if (sampleIndex < rawData.length && isDecodingData) setTimeout(parseChunk, 0);
         else if (sampleIndex >= rawData.length) {
-          document.getElementById('decode-status').textContent = dataBytesLoaded >= 6912 ? "DECODE COMPLETE" : "DECODE FINISHED (NO SCREEN$)";
+          document.getElementById('decode-status').textContent = dataBytesLoaded >= spectrumScreenBytes.length ? "DECODE COMPLETE" : "DECODE FINISHED";
           renderScrBufferToCanvas();
         }
       }
@@ -2059,7 +2884,7 @@
     document.getElementById('wav-upload').addEventListener('change', handleWavUpload);
 
     // ----------------------------------------------------
-    // 9. EXTRAS / FUN FEATURES (CRT Filter, Static, SFX)
+    // 9. EXTRAS / FUN FEATURES
     // ----------------------------------------------------
     function toggleCrtFilter(checkbox) {
       const container = document.getElementById('border-viewport');
@@ -2071,19 +2896,10 @@
     }
 
     function generateScreenStatic() {
-      // Randomize all 6912 bytes of screen memory
-      for (let i = 0; i < 6912; i++) {
+      for (let i = 0; i < spectrumScreenBytes.length; i++) {
         spectrumScreenBytes[i] = Math.floor(Math.random() * 256);
       }
-      // Guarantee some bright/flash attribute colors for visual flair
-      for (let i = 6144; i < 6912; i++) {
-        if (Math.random() > 0.8) {
-          spectrumScreenBytes[i] |= 0x40; // Add bright bit
-        }
-      }
       renderScrBufferToCanvas();
-      
-      // Random border color
       borderViewport.style.backgroundColor = BORDER_HEX_COLORS[Math.floor(Math.random() * 8)];
     }
 
@@ -2095,7 +2911,7 @@
       
       osc.type = 'square';
       osc.frequency.setValueAtTime(1200, now);
-      osc.frequency.exponentialRampToValueAtTime(100, now + 0.3); // "Pew" drop
+      osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
       
       gain.gain.setValueAtTime(0.1, now);
       gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
@@ -2109,14 +2925,13 @@
 
     function playSfxNoise() {
       initSimulatorAudioContext();
-      const bufferSize = simulatorAudioCtx.sampleRate * 0.5; // 0.5 seconds of noise
+      const bufferSize = simulatorAudioCtx.sampleRate * 0.5;
       const buffer = simulatorAudioCtx.createBuffer(1, bufferSize, simulatorAudioCtx.sampleRate);
       const data = buffer.getChannelData(0);
       
-      // Generate blocky/1-bit style noise
       let lastVal = 0;
       for (let i = 0; i < bufferSize; i++) {
-        if (i % 10 === 0) { // Hold samples to sound more "chunky/retro"
+        if (i % 10 === 0) {
           lastVal = (Math.random() * 2) - 1 > 0 ? 1 : -1;
         }
         data[i] = lastVal;
@@ -2135,7 +2950,6 @@
       
       noiseSource.start();
     }
-
   </script>
 </body>
 </html>
