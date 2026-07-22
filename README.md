@@ -1,6 +1,6 @@
 # 📼 ZX Spectrum Tape & Image Loader Editor
 
-A completely client-side retro-computing tool optimized for mobile browsers. This single-file web application allows you to convert images, write native Sinclair BASIC, compile `.TAP` files, and synthesize real-time cassette loading audio directly in your browser.
+A completely client-side retro-computing tool optimized for modern browsers. This single-file web application allows you to convert images, write native Sinclair BASIC, compile `.TAP` files, and synthesize real-time cassette loading audio directly in your browser.
 
 See the [Changelog](CHANGELOG.md) for version history.
 
@@ -18,8 +18,8 @@ See the [Changelog](CHANGELOG.md) for version history.
 Since this is a completely client-side application built into a single HTML file, there is no installation or server required!
 
 1. Download the `zx_spectrum_mobile_tape_image_loader.html` file.
-2. Open it in any modern web browser (Chrome, Safari, Firefox, Edge).
-3. The app is fully responsive and optimized for mobile devices.
+2. Open it in any modern web browser (Chrome, Safari, Firefox, Edge & more).
+3. The app is fully responsive and optimized for mobile and computer devices.
 
 ## 🛠️ Tech Stack
 
