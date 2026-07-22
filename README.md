@@ -2,6 +2,8 @@
 
 A completely client-side retro-computing tool optimized for mobile browsers. This single-file web application allows you to convert images, write native Sinclair BASIC, compile `.TAP` files, and synthesize real-time cassette loading audio directly in your browser.
 
+See the [Changelog](CHANGELOG.md) for version history.
+
 ## ✨ Features
 
 *   **🖼️ Image Spectrumizer (Convert to SCR):** Convert modern PNG/JPG photos into authentic ZX Spectrum screen memory dumps. Features multiple fit modes, pixel chunk sizes, brightness/contrast controls, and Floyd-Steinberg dithering.
