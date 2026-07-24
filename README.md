@@ -25,7 +25,7 @@ Since this is a completely client-side application built into a single HTML file
 
 ## 🐛 Issues & Bug Reports
 Did you find a bug, graphical glitch, or tape compilation error? Or maybe you have a great idea for a new retro feature? We want to hear about it!
-Please use the GitHub Issue Tracker to report problems or request features:
+Please use the GitHub Issue to report problems or request features:
 
  * **Report a Bug:** Open a Bug Report
 
