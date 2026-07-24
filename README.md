@@ -31,7 +31,7 @@ Please use the GitHub Issue to report problems or request features:
 
  * **Request a Feature:** Open a Feature Request
 
-*When reporting a bug, please include as much detail as possible, including your device, browser, and the steps to reproduce the error.*
+*When reporting a bug, please include as much detail as possible, including your device, browser, and the steps to reproduce the error. (But, this issues will be build and how really are bug is just happen with AI made.)*
 
 ## 🛠️ Tech Stack
 Made by: Google Gemini Flash, Pro, & ChatGPT.
