@@ -10,7 +10,7 @@ This project follows Semantic Versioning:
 
 ---
 
-# [Unreleased]
+# [Unreleased, Coming Soon]
 
 ## Planned Features
 
