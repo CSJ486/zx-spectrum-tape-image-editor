@@ -34,8 +34,11 @@ Please use the GitHub Issue Tracker to report problems or request features:
 *When reporting a bug, please include as much detail as possible, including your device, browser, and the steps to reproduce the error.*
 
 ## 🛠️ Tech Stack
+Made by: Google Gemini Flash, Pro, & ChatGPT.
 Built entirely with Vanilla HTML5, CSS3, and JavaScript. **Zero external libraries.** * **Canvas API:** Used for pixel-perfect attribute clash rendering and extended video modes (Mode 4, Timex Hi-Color).
- * **Web Audio API:** Used for highly accurate cassette tape synthesis and Schmitt-trigger edge-detection decoding.
+
+*   **Canvas API:** Used for pixel-perfect attribute clash rendering and image scaling.
+*   **Web Audio API:** Used for highly accurate cassette tape synthesis and Schmitt-trigger edge-detection decoding.
 
 ## 👤 Creator & Credits
 
