@@ -19,7 +19,7 @@ See the [Changelog](CHANGELOG.md) for version history.
 
 ## 🚀 How to Use
 Since this is a completely client-side application built into a single HTML file, there is no installation or server required!
- 1. Download the latest .html release file from this repository.
+ 1. Download the [zx_spectrum_mobile_tape_image_loader.html](zx_spectrum_mobile_tape_image_loader.html) or latest .html release file from this repository.
  2. Open it in any modern web browser (Chrome, Safari, Firefox, Edge).
  3. The app is fully responsive and optimized for mobile devices, so you can code on the go!
 
