@@ -264,6 +264,12 @@
       color: #166534;
     }
 
+    .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .feature-panel { border: 1px solid var(--border-color); border-radius: 10px; background: #f8fafc; padding: 12px; }
+    .feature-panel h4 { margin-bottom: 8px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-text); }
+    .readonly-box { width: 100%; min-height: 110px; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; background: #fff; font-family: monospace; font-size: 0.8rem; line-height: 1.45; white-space: pre-wrap; overflow: auto; color: var(--text-color); }
+    .tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .small-note { margin-top: 8px; font-size: 0.76rem; color: var(--muted-text); line-height: 1.4; }
     .social-links { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
     .social-link { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text-color); padding: 10px; border-radius: 8px; background: #f8fafc; border: 1px solid var(--border-color); transition: background 0.2s; }
     .social-link:hover { background: #e2e8f0; }
@@ -286,7 +292,7 @@
 
   <header>
     <h1>ZX Mobile Tape Loader</h1>
-    <p>Retro-Computing Image Converter &amp; Simulator</p>
+    <p>Retro-Computing Image Converter &amp; Simulator • v1.3.6.2</p>
   </header>
 
   <div class="main-container">
@@ -353,6 +359,35 @@
         </div>
       </div>
 
+      <div class="feature-grid" style="margin-bottom: 12px;">
+        <div class="feature-panel">
+          <h4>Palette Strategy</h4>
+          <select id="param-palette-strategy">
+            <option value="auto">Auto Match</option>
+            <option value="greyscale">Greyscale</option>
+            <option value="user">User Palette</option>
+          </select>
+        </div>
+        <div class="feature-panel">
+          <div class="switch-container" style="padding: 0; min-height: 44px;">
+            <span style="font-size: 0.85rem; font-weight: 600; color: var(--muted-text); text-transform: uppercase; line-height: 1.2;">Attribute Clash Reduction</span>
+            <label class="switch">
+              <input type="checkbox" id="param-clash-reduction" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label>User Palette (Comma-Separated Hex Colours)</label>
+        <input type="text" id="param-user-palette" placeholder="#000000,#0000FF,#FF0000,#FF00FF,#00FF00,#00FFFF,#FFFF00,#FFFFFF">
+      </div>
+
+      <div class="info-block">
+        Leave the export filename blank to type your own program name before saving the tape.
+      </div>
+
       <div class="btn-grid" style="margin-bottom: 12px;">
         <div class="control-group" style="margin-bottom: 0;">
           <label>Image Fit Mode</label>
@@ -415,12 +450,24 @@
 
       <div class="control-group" style="margin-top: 12px;">
         <label>Export Header Filename (Max 10 Chars)</label>
-        <input type="text" id="tap-filename" maxlength="10" placeholder="e.g. SCREEN" value="SCREEN">
+        <input type="text" id="tap-filename" maxlength="10" placeholder="Type your program name" value="">
+      </div>
+
+      <div class="control-group">
+        <label>Tape Data Format</label>
+        <select id="tap-export-format">
+          <option value="tap">TAP (Standard)</option>
+          <option value="tzx">TZX (Standard Data Blocks)</option>
+        </select>
+      </div>
+
+      <div class="info-block">
+        The filename box starts blank so you can type your own program name. Choose TAP or TZX before exporting.
       </div>
 
       <div class="btn-grid">
         <button class="action-btn" onclick="applyImageScaling()">Re-render Image</button>
-        <button class="action-btn secondary-btn" onclick="exportConvertedToTap()">Export SCR .TAP</button>
+        <button class="action-btn secondary-btn" onclick="exportConvertedToTap()">Export SCR .TAP / .TZX</button>
       </div>
     </div>
 
@@ -461,6 +508,18 @@
       </div>
 
       <div class="control-group">
+        <label>Tape Data Format</label>
+        <select id="basic-tape-format">
+          <option value="tap">TAP (Standard)</option>
+          <option value="tzx">TZX (Standard Data Blocks)</option>
+        </select>
+      </div>
+
+      <div class="info-block">
+        Choose TAP or TZX for BASIC exports. TZX keeps the same tape data but stores it in a more descriptive cassette container.
+      </div>
+
+      <div class="control-group">
         <label>Target Machine</label>
         <select id="param-basic-mode">
           <option value="48">ZX Spectrum 48K</option>
@@ -473,6 +532,31 @@
         <label>BASIC Code</label>
         <textarea id="basic-code" spellcheck="false" placeholder="Type your Sinclair BASIC code here..."></textarea>
       </div>
+
+      <div class="feature-grid">
+        <div class="feature-panel">
+          <h4>Syntax Highlight Preview</h4>
+          <div id="basic-syntax-preview" class="readonly-box">Type BASIC to see syntax highlighting...</div>
+        </div>
+        <div class="feature-panel">
+          <h4>Variable Explorer</h4>
+          <div id="basic-variable-explorer" class="readonly-box">No variables found yet.</div>
+        </div>
+      </div>
+
+      <div class="feature-panel" style="margin-top: 10px;">
+        <h4>Tokenized BASIC Viewer</h4>
+        <div id="basic-token-viewer" class="readonly-box" style="min-height: 90px;">No BASIC lines to tokenize yet.</div>
+      </div>
+
+      <div class="tool-grid">
+        <button class="action-btn secondary-btn" type="button" onclick="renumberBasicLines()">Renumber Lines</button>
+        <button class="action-btn secondary-btn" type="button" onclick="autoIndentBasicCode()">Auto-Indent</button>
+        <button class="action-btn secondary-btn" type="button" onclick="insertScreenLoader()">Insert SCREEN$ Loader</button>
+        <button class="action-btn secondary-btn" type="button" onclick="updateBasicEditorViews()">Token Preview</button>
+      </div>
+
+      <div class="small-note">These helpers make it easier to clean up BASIC listings, prepare loader demos, and keep image programs in a consistent format.</div>
 
       <div class="btn-grid">
         <div class="control-group" style="margin-bottom: 0;">
@@ -541,6 +625,28 @@
         </label>
       </div>
 
+      <div class="feature-grid" style="margin-top: 12px;">
+        <div class="feature-panel">
+          <div class="switch-container" style="padding: 0; min-height: 44px;">
+            <span style="font-size: 0.85rem; font-weight: 600; color: var(--muted-text); text-transform: uppercase; line-height: 1.2;">Auto-Detect ORG</span>
+            <label class="switch">
+              <input type="checkbox" id="asm-auto-org" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="small-note">Reads the ORG value from source when possible and keeps the origin field in sync.</div>
+        </div>
+        <div class="feature-panel">
+          <h4>Live Symbol Browser</h4>
+          <div id="asm-symbol-browser" class="readonly-box" style="min-height: 110px;">No labels found.</div>
+        </div>
+      </div>
+
+      <div class="feature-panel" style="margin-top: 10px;">
+        <h4>Binary Memory Viewer</h4>
+        <div id="asm-memory-viewer" class="readonly-box" style="min-height: 110px;">Compiled bytes will appear here...</div>
+      </div>
+
       <button class="action-btn" style="margin-top: 12px; background-color: #0f766e;" onclick="compileAsmToTap()">
         Compile ASM to .TAP
       </button>
@@ -600,6 +706,28 @@
         Export Current Tape to .WAV
       </button>
 
+      <div class="card" style="margin-top: 16px; padding: 12px; background: #f8fafc; border: 1px solid var(--border-color);">
+        <div class="card-title" style="margin-bottom: 10px;">
+          <span>Tape System</span>
+          <span style="font-size: 0.75rem; color: var(--muted-text)">Inspector & Editor</span>
+        </div>
+
+        <div class="control-group">
+          <label>Pulse Editor</label>
+          <textarea id="pulse-editor" spellcheck="false" placeholder="2168, 2168, 2168, 667, 735, 855, 1710"></textarea>
+          <button class="action-btn secondary-btn" style="margin-top: 8px;" onclick="applyPulseScript()">Apply Pulse Script</button>
+        </div>
+
+        <div class="control-group">
+          <label>Tape Block Inspector</label>
+          <textarea id="tape-block-inspector" readonly spellcheck="false" placeholder="Loaded tape blocks will appear here..."></textarea>
+        </div>
+
+        <div class="info-block">
+          TZX export is available from Spectrumizer and BASIC Editor using the TAP/TZX selectors. The inspector updates when tape blocks are loaded.
+        </div>
+      </div>
+
       <div class="info-block">
         Plays standard ZX Spectrum tapes or your converted images with real-time synthesized cassette sounds and border synchronization.
       </div>
@@ -613,11 +741,26 @@
       </div>
 
       <div class="control-group">
-        <label>Upload Tape Audio File (.WAV)</label>
+        <label>Upload Tape Audio File</label>
         <label for="wav-upload" class="upload-btn" style="background-color: #7c3aed;">
-          Upload WAV Tape Audio
+          Upload Tape Audio
         </label>
-        <input type="file" id="wav-upload" class="file-input" accept="audio/wav, audio/x-wav">
+        <input type="file" id="wav-upload" class="file-input" accept="audio/*">
+      </div>
+
+      <div class="control-group">
+        <label>Capture Format</label>
+        <select id="wav-capture-format">
+          <option value="auto">Auto Detect</option>
+          <option value="wav">WAV / PCM</option>
+          <option value="mp3">MP3</option>
+          <option value="ogg">OGG / Vorbis</option>
+          <option value="flac">FLAC (if browser supported)</option>
+        </select>
+      </div>
+
+      <div class="info-block">
+        Cleaner WAV export output, better noise handling, and longer recordings are supported through the shared decode pipeline.
       </div>
 
       <div class="loader-status">
@@ -795,6 +938,22 @@
           <p>If you are building an image loader, a simple working pattern is: choose an image, write a BASIC loader line, then compile to <code>.TAP</code>.</p>
         </div>
       </div>
+
+      <div class="manual-section">
+        <div class="manual-header" onclick="toggleManual(this)">9. Unreleased / Planned Features <span>+</span></div>
+        <div class="manual-body">
+          <p>These are planned updates for future builds of ZX Spectrum Tape Image Loader.</p>
+          <ul>
+            <li><strong>BASIC Editor:</strong> syntax highlighting, auto-indent, line renumbering, tokenized output preview, and a smoother image loader workflow.</li>
+            <li><strong>Spectrumizer:</strong> more graphic modes, better colour matching, improved dithering, user-defined palettes, and faster rendering.</li>
+            <li><strong>ASM Converter:</strong> more directives, label navigation, symbol browsing, memory viewing, and stronger error reporting.</li>
+            <li><strong>Tape System:</strong> TZX export, pulse editing, tape inspection, turbo loader support, and better emulator compatibility.</li>
+            <li><strong>WAV Tools:</strong> cleaner export output, improved decoding accuracy, stronger noise handling, and more stable analysis.</li>
+            <li><strong>Interface:</strong> better mobile layout, clearer status messages, and more polished workflow feedback.</li>
+          </ul>
+          <p>This section can be updated as new work lands in the app, so the HTML file stays in sync with the next release direction.</p>
+        </div>
+      </div>
     </div>
 
     <!-- About / Credits -->
@@ -806,9 +965,12 @@
       <div class="info-block" style="font-size: 0.9rem; color: var(--text-color);">
         <h3 style="color: var(--accent-color); margin-bottom: 8px;">ZX Spectrum Mobile Tape & Image Loader</h3>
         <p>A completely client-side retro-computing tool optimized for mobile browsers.</p>
+        <p style="margin-top: 6px; color: var(--muted-text);">Version 1.3.6.2</p>
         
         <h4 style="margin-top: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px;">Tech Stack</h4>
         <p style="margin-top: 8px;">Built entirely with Vanilla HTML5, CSS3, and JavaScript. Zero external libraries. Utilizes the Canvas API for pixel-perfect attribute clash rendering and the Web Audio API for highly accurate cassette tape synthesis and Schmitt-trigger edge-detection decoding.</p>
+        <p style="margin-top: 8px; color: var(--muted-text);"><strong>Version 1.3.6.2</strong> adds the new Spectrumizer, BASIC Editor, and ASM Converter helper panels shown in the mobile screenshots.</p>
+        <p style="margin-top: 8px; color: var(--muted-text);"><strong>Planned features</strong> are tracked in the Manual tab so this HTML file also works as a live roadmap.</p>
 
         <h4 style="margin-top: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px;">Creator</h4>
         <p style="margin-top: 8px; font-weight: bold; font-size: 1.05rem;">RiziqMaulana</p>
@@ -835,6 +997,9 @@
           <a href="https://x.com/RMaulana52881" target="_blank" class="social-link">
             <svg viewBox="0 0 24 24"><path fill="currentColor" d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg>
             <div class="social-text"><span class="social-title">My X (aka Twitter)</span><span class="social-handle">x.com/RMaulana52881</span></div>
+          </a>
+          <a href="https://github.com/CSJ486/" target="_blank" class="social-link">
+            <div class="social-text"><span class="social-title">GitHub</span><span class="social-handle">github.com/CSJ486/</span></div>
           </a>
         </div>
 
@@ -972,6 +1137,13 @@
     document.getElementById('basic-filename').addEventListener('input', (e) => {
       e.target.value = e.target.value.toUpperCase();
     });
+    document.getElementById('basic-code').addEventListener('input', updateBasicEditorViews);
+    document.getElementById('asm-code').addEventListener('input', updateAsmEditorViews);
+    document.getElementById('asm-origin').addEventListener('input', updateAsmEditorViews);
+    document.getElementById('asm-runaddr').addEventListener('input', updateAsmEditorViews);
+    document.getElementById('asm-auto-org').addEventListener('change', updateAsmEditorViews);
+    updateBasicEditorViews();
+    updateAsmEditorViews();
 
     // Tape Handling globals
     let activeTapeBlocks = []; 
@@ -1055,6 +1227,171 @@
       } else {
         textArea.value = "";
       }
+      updateBasicEditorViews();
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function formatBasicSourceLine(line) {
+      const match = line.match(/^(\d+)\s*(.*)$/);
+      if (!match) return escapeHtml(line);
+      const lineNo = escapeHtml(match[1]);
+      const body = match[2] || '';
+      const keywords = SORTED_TOKENS.filter(tk => !tk.includes(' ')).slice(0, 24);
+      let out = escapeHtml(body);
+
+      out = out.replace(/("(?:[^"\\]|\\.)*")/g, '<span style="color:#0f766e;">$1</span>');
+      out = out.replace(/('.*$)/g, '<span style="color:#9a3412;">$1</span>');
+      out = out.replace(/\b(\d+)\b/g, '<span style="color:#1d4ed8; font-weight:700;">$1</span>');
+
+      for (const kw of keywords) {
+        const re = new RegExp(`\\b${kw.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'gi');
+        out = out.replace(re, m => `<span style="color:#7c3aed; font-weight:700;">${m.toUpperCase()}</span>`);
+      }
+      return `<span style="color:#64748b; font-weight:700;">${lineNo}</span> <span>${out}</span>`;
+    }
+
+    function getBasicSourceLines() {
+      const source = document.getElementById('basic-code').value || '';
+      return source.split(/\r?\n/).map(line => line.trimEnd());
+    }
+
+    function formatBasicForPreview(source) {
+      return source
+        .replace(/\r/g, '')
+        .split(/\n/)
+        .filter(Boolean)
+        .map(line => formatBasicSourceLine(line))
+        .join('<br>');
+    }
+
+    function extractBasicVariables(source) {
+      const vars = new Set();
+      const patterns = [
+        /(?:^|:)\s*LET\s+([A-Z][A-Z0-9\$]*)\s*=?/gi,
+        /(?:^|:)\s*INPUT\s+([A-Z][A-Z0-9\$]*)/gi,
+        /(?:^|:)\s*FOR\s+([A-Z][A-Z0-9\$]*)\s*=/gi,
+        /(?:^|:)\s*DIM\s+([A-Z][A-Z0-9\$]*)/gi
+      ];
+      for (const rx of patterns) {
+        let match;
+        while ((match = rx.exec(source)) !== null) {
+          vars.add(match[1].toUpperCase());
+        }
+      }
+      return [...vars].sort();
+    }
+
+    function tokenPreviewForBasic(source) {
+      const lines = source.replace(/\r/g, '').split(/\n/).filter(Boolean);
+      if (!lines.length) return 'No BASIC lines to tokenize yet.';
+
+      const preview = [];
+      for (const raw of lines) {
+        const match = raw.match(/^(\d+)\s*(.*)$/);
+        if (!match) continue;
+        const lineNum = match[1];
+        let text = match[2];
+        let i = 0;
+        let inString = false;
+        let lineOut = `${lineNum} `;
+        while (i < text.length) {
+          if (text[i] === '"') {
+            inString = !inString;
+            lineOut += text[i++];
+            continue;
+          }
+          if (!inString) {
+            let matched = false;
+            const scan = text.substring(i).toUpperCase();
+            for (const tk of SORTED_TOKENS) {
+              if (scan.startsWith(tk)) {
+                lineOut += `[${ZX_TOKENS[tk].toString(16).toUpperCase().padStart(2, '0')}] ${tk}`;
+                i += tk.length;
+                matched = true;
+                break;
+              }
+            }
+            if (matched) continue;
+          }
+          lineOut += text[i++];
+        }
+        preview.push(lineOut);
+      }
+      return preview.join('\n') || 'No BASIC lines to tokenize yet.';
+    }
+
+    function updateBasicEditorViews() {
+      const source = document.getElementById('basic-code').value || '';
+      const syntaxBox = document.getElementById('basic-syntax-preview');
+      const varsBox = document.getElementById('basic-variable-explorer');
+      const tokenBox = document.getElementById('basic-token-viewer');
+
+      if (syntaxBox) {
+        syntaxBox.innerHTML = source.trim()
+          ? formatBasicForPreview(source)
+          : 'Type BASIC to see syntax highlighting...';
+      }
+
+      if (varsBox) {
+        const vars = extractBasicVariables(source);
+        varsBox.textContent = vars.length ? vars.join(', ') : 'No variables found yet.';
+      }
+
+      if (tokenBox) {
+        tokenBox.textContent = tokenPreviewForBasic(source);
+      }
+    }
+
+    function renumberBasicLines(start = 10, step = 10) {
+      const lines = getBasicSourceLines();
+      const numbered = [];
+      let n = start;
+      for (const raw of lines) {
+        const match = raw.match(/^(\d+)\s*(.*)$/);
+        if (!match) continue;
+        numbered.push(`${n} ${match[2].trim()}`);
+        n += step;
+      }
+      document.getElementById('basic-code').value = numbered.join('\n');
+      updateBasicEditorViews();
+    }
+
+    function autoIndentBasicCode() {
+      const lines = getBasicSourceLines();
+      const formatted = lines.map(raw => {
+        const match = raw.match(/^(\d+)\s*(.*)$/);
+        if (!match) return raw.trim();
+        let body = match[2].trim();
+        body = body.replace(/\s*:\s*/g, ': ');
+        body = body.replace(/\s+/g, ' ');
+        return `${match[1]} ${body}`.trim();
+      });
+      document.getElementById('basic-code').value = formatted.join('\n');
+      updateBasicEditorViews();
+    }
+
+    function insertScreenLoader() {
+      const textarea = document.getElementById('basic-code');
+      const current = textarea.value || '';
+      if (/LOAD\s+"[^"]*"\s*SCREEN\$/i.test(current)) {
+        updateBasicEditorViews();
+        return;
+      }
+      const lines = current.replace(/\r/g, '').split(/\n/).filter(Boolean);
+      if (!lines.length) {
+        textarea.value = '10 LOAD "" SCREEN$';
+      } else {
+        textarea.value = ['10 LOAD "" SCREEN$'].concat(lines).join('\n');
+      }
+      updateBasicEditorViews();
     }
 
     // ----------------------------------------------------
@@ -1217,6 +1554,7 @@
         }
 
         document.getElementById('basic-examples').value = '';
+        updateBasicEditorViews();
       }, 'basic');
     }
 
@@ -1686,10 +2024,7 @@
       }
 
       let filename = document.getElementById('basic-filename').value.trim();
-      if (!filename) {
-        showCompileStatus("Error: Program Name cannot be blank.", true);
-        return;
-      }
+      if (!filename) filename = 'BASICPROG';
       filename = filename.padEnd(10, ' ').substring(0, 10).toUpperCase();
 
       const progHeader = new Uint8Array(21);
@@ -1720,7 +2055,7 @@
         if (nameMatch && nameMatch[1].trim() !== "") {
           imgName = nameMatch[1].trim();
         } else {
-          imgName = document.getElementById('tap-filename').value.trim() || "SCREEN";
+          imgName = document.getElementById('tap-filename').value.trim() || "";
         }
         imgName = imgName.padEnd(10, ' ').substring(0, 10).toUpperCase();
 
@@ -1754,15 +2089,11 @@
         offset += arr.length;
       }
 
-      const blob = new Blob([combined], {type: "application/octet-stream"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${filename.trim()}.tap`;
-      a.click();
-      URL.revokeObjectURL(url);
+      const tapeFormat = getSelectedTapeFormat('basic-tape-format');
+      parseTapBytes(combined);
+      downloadTapeBytes(combined, filename.trim(), tapeFormat);
 
-      showCompileStatus(`Compiled successfully! Autostart at line ${autostart}.`, false);
+      showCompileStatus(`Compiled successfully! Autostart at line ${autostart}. Output format: ${tapeFormat.toUpperCase()}.`, false);
     }
 
 
@@ -2292,7 +2623,9 @@
       const source = document.getElementById('asm-code').value || '';
       const originRaw = parseInt(document.getElementById('asm-origin').value, 10);
       const runRaw = parseInt(document.getElementById('asm-runaddr').value, 10);
-      const origin = Number.isFinite(originRaw) ? originRaw : 32768;
+      const autoOrg = !!(document.getElementById('asm-auto-org') && document.getElementById('asm-auto-org').checked);
+      const detectedOrigin = detectAsmOrigin(source, Number.isFinite(originRaw) ? originRaw : 32768);
+      const origin = autoOrg ? detectedOrigin : (Number.isFinite(originRaw) ? originRaw : 32768);
       const runAddr = Number.isFinite(runRaw) ? runRaw : origin;
 
       let filename = document.getElementById('asm-filename').value.trim();
@@ -2334,17 +2667,160 @@
         URL.revokeObjectURL(url);
 
         showAsmStatus(`ASM compiled successfully. ${codeBytes.length} bytes assembled from origin ${origin}.`, false);
+        updateAsmEditorViews();
       } catch (err) {
         showAsmStatus(`ASM compile error: ${err.message}`, true);
+        updateAsmEditorViews();
+      }
+    }
+
+
+    function getSelectedTapeFormat(selectId) {
+      const select = document.getElementById(selectId);
+      return select && String(select.value).toLowerCase() === 'tzx' ? 'tzx' : 'tap';
+    }
+
+    function buildTzxFromTapBytes(tapBytes) {
+      const tzxHeader = new Uint8Array([0x5A, 0x58, 0x54, 0x61, 0x70, 0x65, 0x21, 0x1A, 0x01, 0x14]);
+      const chunks = [tzxHeader];
+      let offset = 0;
+
+      while (offset + 2 <= tapBytes.length) {
+        const blockLen = tapBytes[offset] | (tapBytes[offset + 1] << 8);
+        offset += 2;
+        if (blockLen <= 0 || offset + blockLen > tapBytes.length) break;
+
+        const rawBlock = tapBytes.subarray(offset, offset + blockLen);
+        const tzxBlock = new Uint8Array(5 + rawBlock.length);
+        tzxBlock[0] = 0x10;
+        const pauseMs = rawBlock[0] === 0x00 ? 1000 : 1000;
+        tzxBlock[1] = pauseMs & 0xFF;
+        tzxBlock[2] = (pauseMs >> 8) & 0xFF;
+        tzxBlock[3] = rawBlock.length & 0xFF;
+        tzxBlock[4] = (rawBlock.length >> 8) & 0xFF;
+        tzxBlock.set(rawBlock, 5);
+        chunks.push(tzxBlock);
+        offset += blockLen;
+      }
+
+      return concatUint8Arrays(chunks);
+    }
+
+    function downloadTapeBytes(tapBytes, baseName, format) {
+      const safeBase = (baseName || '').trim() || 'spectrum_loader';
+      const tapeFormat = (format || 'tap').toLowerCase() === 'tzx' ? 'tzx' : 'tap';
+      const outputBytes = tapeFormat === 'tzx' ? buildTzxFromTapBytes(tapBytes) : tapBytes;
+
+      const blob = new Blob([outputBytes], { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${safeBase}.${tapeFormat}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function refreshTapeInspector() {
+      const inspector = document.getElementById('tape-block-inspector');
+      if (!inspector) return;
+
+      if (!activeTapeBlocks.length) {
+        inspector.value = 'No tape blocks loaded yet.';
+        return;
+      }
+
+      inspector.value = activeTapeBlocks.map((block, index) => {
+        const typeName = block.description || (block.type === 0 ? 'Header Block' : 'Data Block');
+        return `${index + 1}. ${typeName} | type ${block.type} | ${block.size} bytes`;
+      }).join('\n');
+    }
+
+    let customPulseScript = [];
+    function applyPulseScript() {
+      const editor = document.getElementById('pulse-editor');
+      if (!editor) return;
+
+      const values = editor.value
+        .split(/[\s,]+/)
+        .map(v => parseInt(v, 10))
+        .filter(v => Number.isFinite(v) && v > 0);
+
+      customPulseScript = values.slice(0, 1024);
+      const status = document.getElementById('tape-status');
+      if (status) {
+        status.textContent = customPulseScript.length
+          ? `Pulse script loaded (${customPulseScript.length} values)`
+          : 'PULSE SCRIPT EMPTY';
+      }
+    }
+
+
+    function detectAsmOrigin(source, fallbackOrigin = 32768) {
+      const match = String(source || '').match(/^\s*ORG\s+(.+)$/im);
+      if (!match) return fallbackOrigin;
+      try {
+        const value = asmEvalExpr(match[1], {}, fallbackOrigin);
+        return Number.isFinite(value) ? value : fallbackOrigin;
+      } catch {
+        return fallbackOrigin;
+      }
+    }
+
+    function formatAsmHexDump(bytes) {
+      if (!bytes || !bytes.length) return 'Compiled bytes will appear here...';
+      const lines = [];
+      for (let i = 0; i < bytes.length; i += 16) {
+        const chunk = Array.from(bytes.slice(i, i + 16))
+          .map(v => v.toString(16).toUpperCase().padStart(2, '0'))
+          .join(' ');
+        lines.push(`${i.toString(16).toUpperCase().padStart(4, '0')}: ${chunk}`);
+        if (lines.length >= 32) {
+          lines.push('...');
+          break;
+        }
+      }
+      return lines.join('\n');
+    }
+
+    function updateAsmEditorViews() {
+      const source = document.getElementById('asm-code').value || '';
+      const symbolsBox = document.getElementById('asm-symbol-browser');
+      const memoryBox = document.getElementById('asm-memory-viewer');
+      const originField = document.getElementById('asm-origin');
+      const autoOrg = !!(document.getElementById('asm-auto-org') && document.getElementById('asm-auto-org').checked);
+
+      if (!source.trim()) {
+        if (symbolsBox) symbolsBox.textContent = 'No labels found.';
+        if (memoryBox) memoryBox.textContent = 'Compiled bytes will appear here...';
+        return;
+      }
+
+      const fallbackOrigin = parseInt(originField.value, 10);
+      const baseOrigin = Number.isFinite(fallbackOrigin) ? fallbackOrigin : 32768;
+      const origin = autoOrg ? detectAsmOrigin(source, baseOrigin) : baseOrigin;
+      if (autoOrg && originField) originField.value = String(origin);
+
+      try {
+        const assembled = assembleAsmSource(source, origin);
+        const symbolEntries = Object.entries(assembled.symbols || {}).sort((a, b) => a[0].localeCompare(b[0]));
+        if (symbolsBox) {
+          symbolsBox.textContent = symbolEntries.length
+            ? symbolEntries.map(([name, addr]) => `${name} = ${addr} ($${addr.toString(16).toUpperCase().padStart(4, '0')})`).join('\n')
+            : 'No labels found.';
+        }
+        if (memoryBox) memoryBox.textContent = formatAsmHexDump(assembled.bytes);
+      } catch (err) {
+        if (symbolsBox) symbolsBox.textContent = `ASM preview error:\n${err.message}`;
+        if (memoryBox) memoryBox.textContent = `Unable to assemble preview.\n${err.message}`;
       }
     }
 
     // ----------------------------------------------------
     // 5. TAP FILE EXPORT
     // ----------------------------------------------------
-    function getCleanFilename(inputId) {
+    function getCleanFilename(inputId, fallback = "SCREEN") {
       let f = document.getElementById(inputId).value.trim();
-      if (!f) f = "SCREEN";
+      if (!f) f = fallback;
       return f.padEnd(10, ' ').substring(0, 10).toUpperCase();
     }
 
@@ -2353,10 +2829,10 @@
       const header = new Uint8Array(21);
       header[0] = 19; header[1] = 0;
       header[2] = 0; header[3] = 3; 
-      
-      const name = getCleanFilename('tap-filename');
+
+      const name = getCleanFilename('tap-filename', '');
       for (let i = 0; i < 10; i++) header[4 + i] = name.charCodeAt(i);
-      
+
       header[14] = dataLen & 0xFF; header[15] = (dataLen >> 8) & 0xFF; 
       header[16] = 0x00; header[17] = 0x40; 
       header[18] = 0x00; header[19] = 0x80;
@@ -2373,13 +2849,9 @@
       tapFile.set(header, 0);
       tapFile.set(data, header.length);
 
-      const blob = new Blob([tapFile], {type: "application/octet-stream"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${name.trim()}.tap`;
-      a.click();
-      URL.revokeObjectURL(url);
+      parseTapBytes(tapFile);
+      const tapeFormat = getSelectedTapeFormat('tap-export-format');
+      downloadTapeBytes(tapFile, name.trim() || 'spectrum_image', tapeFormat);
     }
 
     // ----------------------------------------------------
@@ -2429,6 +2901,7 @@
 
       const status = document.getElementById('tape-status');
       status.textContent = `Loaded ${activeTapeBlocks.length} Blocks`;
+      refreshTapeInspector();
     }
 
     function initSimulatorAudioContext() {
@@ -2478,7 +2951,7 @@
 
       const header = new Uint8Array(19);
       header[0] = 0x00; header[1] = 0x03; 
-      const name = getCleanFilename('tap-filename');
+      const name = getCleanFilename('tap-filename', '');
       for (let i = 0; i < 10; i++) header[2 + i] = name.charCodeAt(i);
       header[12] = dataLen & 0xFF; header[13] = (dataLen >> 8) & 0xFF; 
       header[14] = 0x00; header[15] = 0x40; 
@@ -2488,6 +2961,7 @@
       data[0] = 0xff; 
       for (let i = 0; i < dataLen; i++) data[1 + i] = spectrumScreenBytes[i];
       activeTapeBlocks.push({ data: data, type: 255, description: "Screen Data", size: dataLen + 2 });
+      refreshTapeInspector();
     }
 
     function runSimulatorTick() {
@@ -2667,7 +3141,7 @@
         const url = URL.createObjectURL(wavBlob);
         const a = document.createElement('a');
         a.href = url;
-        const name = getCleanFilename('tap-filename').trim();
+        const name = getCleanFilename('tap-filename', '').trim();
         a.download = name ? `${name}.wav` : "spectrum_loader.wav";
         a.click();
         URL.revokeObjectURL(url);
