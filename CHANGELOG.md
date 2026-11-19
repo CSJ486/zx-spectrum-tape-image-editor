@@ -8,7 +8,91 @@ This project uses Semantic Versioning:
 - **MINOR** — new capabilities and feature expansions
 - **PATCH** — bug fixes, compatibility improvements, and small refinements
 
+Format loosely follows [Keep a Changelog](https://keepachangelog.com/). Versioning here tracks this project's own internal build history rather than strict semver — adjust version numbers/dates below to match your actual GitHub tags before publishing.
+
 ---
+
+## [1.5.2.9] - 2026-11-02
+
+### Added
+- **Typography:** SF Pro Display font stack as the new default (`-apple-system`, "SF Pro Display", Inter, system-ui fallbacks), with tighter tracking and antialiasing.
+- **Extras & FX:** Font Style picker (SF Pro Display, SF Pro Text, SF Pro Rounded, New York serif, SF Mono, System UI), A-/A+ text size (80-130%), live preview. Saved in localStorage.
+- **ASM Converter:** Compile Log view with timestamped Error / Warning / Success / Info entries, filter chips with counts, clickable line numbers that jump to the source line, Copy, Save (.txt) and Clear.
+- **ASM Converter:** Compile now reports *all* errors at once (unknown instructions, duplicate labels, bad expressions) instead of stopping at the first, and does not write a .TAP while errors exist.
+- **ASM Converter warnings:** unused labels, DB values that don't fit a byte, program not ending in RET/JP/JR/HALT, DI without EI before RET, `JR $` infinite loop, origin in ROM / screen / system-variable area, code reaching top of RAM.
+- **ASM Converter:** "Check Only (no .TAP)" button, "Jump to First Problem", optional "Live check while typing", and Ctrl/Cmd+Enter to compile.
+
+### Notes
+- SF Pro is an Apple system font and is not embedded; non-Apple devices fall back to Inter/system fonts.
+
+---
+
+## [1.5.2.5] - 2026-09-20
+
+### Added
+- **Spectrumizer:** Flip Horizontal / Flip Vertical for the source image (applied before conversion, reset by Reset Spectrumizer).
+- **Spectrumizer:** Download Raw .SCR — saves the converted screen as a standard Spectrum `.scr` file (6912 bytes in Standard mode, 12288 in Timex Hi-Colour).
+- **Spectrumizer:** Colour Usage — shows what percentage of the screen each of the Spectrum's colours (including Bright variants) occupies.
+- **BASIC Editor:** Find & Replace with a match-case option, plus a Count Matches button.
+- **BASIC Editor:** Uppercase Keywords — converts keywords to uppercase while leaving string contents, `REM` comments, and variable names alone.
+- **BASIC Editor:** Download .BAS — saves the program source as a text file.
+- **ASM Converter:** the Disassembly Preview now has a T-state column (taken/not-taken timings for conditional branches) and a one-pass total with an estimated time at 3.5 MHz.
+- **ASM Converter:** Download .BIN (raw assembled bytes) and Download Listing (.lst).
+
+### Fixed
+- ASM assembler: duplicate labels were silently overwritten, so a jump could quietly land on the wrong copy. They now stop the build with a clear error naming the line (labels are not case-sensitive).
+- ASM snippets: inserting the same snippet more than once used to create exactly that duplicate-label situation. Repeat insertions now get numeric suffixes (`DELAY2`, `DELAYLOOP2`, ...) with their internal references updated to match.
+- BASIC linter: `FOR`/`NEXT`/`GOTO` text inside string literals or `REM` comments (for example `PRINT "FOR YOU"`) was counted as real code and produced false warnings; unclosed-quote detection no longer trips on quotes inside a `REM` comment.
+
+---
+
+## [1.5.2] - 2026-09-20
+
+### Added
+- **Spectrumizer:** Auto-Contrast — one-tap histogram stretch that computes brightness/contrast slider values from the source image's actual luminosity range.
+- **Spectrumizer:** Download PNG Preview — exports the current Spectrum-accurate converted image as a plain PNG.
+- **Spectrumizer:** Invert Source Colours toggle.
+- **Spectrumizer:** Before/After Compare — briefly shows the original source photo over the converted preview.
+- **BASIC Editor:** Insert Snippet library (Border Colour Cycle, INK/PAPER Setup, FOR/NEXT Loop, INPUT Prompt, BEEP Tune), auto-numbered and appended to the program.
+- **BASIC Editor:** Copy Code to clipboard.
+- **BASIC Editor:** Check for Issues — a linter catching duplicate line numbers, lines out of ascending order, unclosed string literals, `GOTO`/`GOSUB` targets that don't exist, and mismatched `FOR`/`NEXT` counts.
+- **ASM Converter:** Insert Snippet library (Clear Screen, Print Char via `RST 16`, Delay Loop, Border Colour Flash).
+- **ASM Converter:** Copy Code to clipboard.
+- **ASM Converter:** Disassembly Preview — a Z80 disassembler covering the assembler's own instruction subset, shown alongside the existing symbol browser and hex dump so compiled output can be sanity-checked at a glance.
+
+---
+
+## [1.5.1] - 2026-09-20
+
+### Added
+- Full iOS-style visual redesign: segmented-control tab bar, iOS-proportioned toggle switches (green on-state), rounded card styling, sticky translucent/blurred header, and tactile press-down animation on every button, tab, and switch.
+- UI sound effects (synthesized via Web Audio, no asset files): click, toggle, a success chime on compiles/loads completing, and an error tone on failures. Includes a master on/off switch under Extras & FX.
+- Three hidden easter eggs: the Konami code (rainbow screen flash), tapping the header logo 7 times quickly, and typing "MANIC" into the BASIC code editor.
+
+---
+
+## [1.5.0] - 2026-09-20
+
+### Added
+- **Tape Blocks** visual inspector (BASIC Editor tab): lists every block on a compiled/loaded tape with an icon, `Program:`/`Code:`/`Data`/`Pause` label, byte count, and a running `mm:ss` timestamp computed from real ZX Spectrum ROM cassette-loading timing (pilot tone, sync, and per-bit pulse widths). A corrupt block (checksum mismatch) renders as its own clearly flagged row instead of breaking the list.
+- **Extra BASIC Data Headers**: a repeatable list of additional named Code/Data block pairs a compiled tape can carry, each with its own text content, plus Duplicate and Remove controls per entry.
+- Attribute-clash heatmap overlay for the Spectrumizer preview — highlights, per 8×8 cell, how many pixels had to be forced onto the "wrong" PAPER/INK colour.
+- Dithering algorithm selector — **Version 1** (ordered/Bayer matrix dithering, a regular crosshatch texture) and **Version 2** (Floyd-Steinberg error diffusion). The choice is shared between the Spectrumizer and BASIC Editor tabs.
+- CB-prefixed Z80 instruction group in the ASM assembler: `RLC`, `RRC`, `RL`, `RR`, `SLA`, `SRA`, `SLL`, `SRL`, `BIT`, `SET`, `RES`.
+
+### Fixed
+- ASM assembler: the source line-splitting regular expression was double-escaped (matching the literal text `\r\n` instead of an actual line break), so any multi-line assembly program failed outright. Also fixed the same corruption in the label-detection and opcode/operand-split regular expressions.
+- ASM assembler: the two-pass size-estimation step had no case for `INC`/`DEC`, so any program using either instruction — arguably the most common Z80 instructions after `LD` — failed before assembly could even begin.
+- BASIC compiler: the compiled tape wrote the loading-screen image block *before* the BASIC program block, but the program's own first line (`LOAD "" SCREEN$`) expects the image to be the *next* block after the program runs. Program now always compiles first.
+- Floyd-Steinberg dithering: per-pixel comparisons were reading a pixel snapshot captured before dithering began, so error diffused from an earlier pixel in the same 8×8 cell had no effect on later pixels in that cell — silently dropping most of the diffusion weight.
+- Floyd-Steinberg dithering: reworked into a two-pass architecture (colour selection from pristine, undiffused source pixels; a single continuous diffusion pass across the whole image) after finding that confining diffusion to each cell produced a repeating tile/grid artifact on smooth gradients, while letting diffused error feed back into a neighbouring cell's own colour choice caused bright colours to bleed into unrelated flat areas.
+
+---
+
+## [1.4] - earlier baseline
+
+- Starting point for the above work: image-to-Spectrum converter (Spectrumizer) with brightness/contrast/saturation/edge-boost controls and attribute-clash reduction, a Sinclair BASIC editor/tokenizer/compiler, a Z80 subset assembler, a TAP/TZX tape cassette simulator with synthesized loading audio, and a WAV decoder — the base feature set this changelog's fixes and additions build on.
+
 
 # [Unreleased]
 
