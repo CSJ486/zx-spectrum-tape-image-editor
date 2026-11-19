@@ -7,22 +7,36 @@
   <style>
     /* Clean Minimalist Styling */
     :root {
-      --bg-color: #f8fafc;
+      --bg-color: #f2f2f7;
       --card-bg: #ffffff;
       --text-color: #0f172a;
-      --border-color: #e2e8f0;
-      --accent-color: #2563eb;
-      --accent-hover: #1d4ed8;
-      --muted-text: #64748b;
+      --border-color: #e5e5ea;
+      --accent-color: #007aff;
+      --accent-hover: #0060d1;
+      --ios-green: #34c759;
+      --muted-text: #6b7280;
       --spectrum-border: #334155;
     }
 
+    :root {
+      --font-sf-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", "Inter", system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+      --font-sf-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+      --font-sf-rounded: ui-rounded, "SF Pro Rounded", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Nunito", system-ui, "Segoe UI", Roboto, sans-serif;
+      --font-ny-serif: ui-serif, "New York", "Iowan Old Style", Georgia, "Times New Roman", serif;
+      --font-sf-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      --font-system: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --app-font: var(--font-sf-display);
+      --app-font-scale: 100%;
+    }
+    html { font-size: var(--app-font-scale); }
+    body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; letter-spacing: -0.011em; font-feature-settings: "kern" 1, "liga" 1; }
+    h1, .card-title { letter-spacing: -0.022em; font-weight: 700; }
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
       -webkit-tap-highlight-color: transparent;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: var(--app-font);
     }
 
     body {
@@ -41,6 +55,13 @@
       max-width: 620px;
       margin-bottom: 16px;
       text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 12px 0 10px;
+      background: rgba(242, 242, 247, 0.78);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
     }
 
     header h1 {
@@ -49,6 +70,8 @@
       letter-spacing: -0.025em;
       text-transform: uppercase;
       color: var(--text-color);
+      cursor: pointer;
+      user-select: none;
     }
 
     header p {
@@ -67,20 +90,19 @@
 
     .card {
       background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
+      border: none;
+      border-radius: 16px;
       padding: 16px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.06);
     }
 
     .card-title {
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 700;
       margin-bottom: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0;
       border-bottom: 1px solid var(--border-color);
-      padding-bottom: 8px;
+      padding-bottom: 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -135,6 +157,28 @@
       filter: contrast(1.1) brightness(1.05) saturate(1.2);
     }
 
+    /* Easter egg toast + Konami overlay */
+    .easter-egg-toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(16px);
+      background: rgba(15,23,42,0.94); color: white; padding: 12px 18px; border-radius: 14px;
+      display: flex; align-items: center; gap: 10px; font-size: 0.85rem; font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3); z-index: 9999; opacity: 0;
+      transition: opacity 0.35s ease, transform 0.35s ease;
+      max-width: 88vw; pointer-events: none;
+    }
+    .easter-egg-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .konami-overlay {
+      position: fixed; inset: 0; z-index: 9998; display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.5s ease; pointer-events: none;
+      background: linear-gradient(45deg, #ff0000, #ff9900, #ffee00, #33ff00, #0066ff, #cc00ff, #ff0000);
+      background-size: 400% 400%; animation: konami-rainbow 3s linear infinite;
+    }
+    .konami-overlay.show { opacity: 0.94; }
+    @keyframes konami-rainbow { 0% { background-position: 0% 50%; } 100% { background-position: 400% 50%; } }
+    .konami-text { color: white; font-weight: 900; font-size: 1.6rem; text-align: center; text-shadow: 0 2px 10px rgba(0,0,0,0.45); letter-spacing: 0.04em; padding: 0 24px; }
+    .konami-text span { display: block; font-size: 0.9rem; font-weight: 700; opacity: 0.9; margin-top: 6px; }
+
     .scale-controls {
       display: flex;
       justify-content: space-between;
@@ -158,37 +202,36 @@
       font-weight: bold;
     }
 
-    /* Tabs Styling */
+    /* Tabs Styling — iOS segmented control */
     .tabs {
       display: flex;
       flex-wrap: wrap;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
+      gap: 4px;
+      background: #e5e5ea;
+      border: none;
+      border-radius: 12px;
+      padding: 4px;
       overflow: hidden;
       margin-bottom: 12px;
     }
 
     .tab-btn {
       flex: 1 1 30%;
-      padding: 10px 4px;
-      background: var(--card-bg);
+      padding: 9px 4px;
+      background: transparent;
       border: none;
+      border-radius: 9px;
       font-weight: 600;
       font-size: 0.75rem;
       color: var(--muted-text);
       cursor: pointer;
       text-align: center;
-      transition: all 0.2s ease;
-      border-right: 1px solid var(--border-color);
-      border-bottom: 1px solid var(--border-color);
     }
-    
-    .tab-btn:nth-child(3n) { border-right: none; }
-    .tab-btn:last-child { border-right: none; border-bottom: none; }
 
     .tab-btn.active {
-      background: var(--accent-color);
-      color: #fff;
+      background: var(--card-bg);
+      color: var(--accent-color);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
     }
 
     .tab-content { display: none; }
@@ -212,7 +255,7 @@
     .slider-value { font-size: 0.85rem; font-weight: bold; min-width: 32px; text-align: right; }
 
     select, input[type="text"], input[type="number"], textarea {
-      width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem; background: var(--bg-color); color: var(--text-color); outline: none; font-family: inherit;
+      width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 10px; font-size: 0.9rem; background: var(--bg-color); color: var(--text-color); outline: none; font-family: inherit;
     }
     
     textarea { font-family: monospace; resize: vertical; min-height: 120px; font-size: 0.85rem; }
@@ -221,19 +264,20 @@
     .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
 
     button.action-btn, label.upload-btn {
-      display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 16px; background-color: var(--accent-color); color: white; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s; width: 100%; text-align: center; text-transform: uppercase; letter-spacing: 0.02em;
+      display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 16px; background-color: var(--accent-color); color: white; border: none; border-radius: 12px; font-size: 0.9rem; font-weight: 600; cursor: pointer; width: 100%; text-align: center; letter-spacing: 0; transition: transform 0.12s ease, opacity 0.12s ease, background-color 0.15s ease;
     }
     button.action-btn:hover, label.upload-btn:hover { background-color: var(--accent-hover); }
+    button.action-btn:active, label.upload-btn:active, .tab-btn:active, .dither-version-btn:active { transform: scale(0.96); opacity: 0.82; }
     button.secondary-btn { background-color: #f1f5f9; color: var(--text-color); border: 1px solid var(--border-color); }
     button.secondary-btn:hover { background-color: #e2e8f0; }
 
     .switch-container { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
-    .switch { position: relative; display: inline-block; width: 48px; height: 24px; }
+    .switch { position: relative; display: inline-block; width: 51px; height: 31px; flex-shrink: 0; }
     .switch input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .2s; border-radius: 24px; }
-    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .2s; border-radius: 50%; }
-    input:checked + .slider { background-color: var(--accent-color); }
-    input:checked + .slider:before { transform: translateX(24px); }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #e5e5ea; transition: .2s; border-radius: 31px; }
+    .slider:before { position: absolute; content: ""; height: 27px; width: 27px; left: 2px; bottom: 2px; background-color: white; transition: .2s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.18); }
+    input:checked + .slider { background-color: var(--ios-green); }
+    input:checked + .slider:before { transform: translateX(20px); }
 
     .file-input { display: none; }
 
@@ -267,9 +311,45 @@
     .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .feature-panel { border: 1px solid var(--border-color); border-radius: 10px; background: #f8fafc; padding: 12px; }
     .feature-panel h4 { margin-bottom: 8px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-text); }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+    .toggle-mini-btn { min-height: 30px; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border-color); background: #fff; color: var(--text-color); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer; }
+    .toggle-mini-btn:hover { background: #f1f5f9; }
     .readonly-box { width: 100%; min-height: 110px; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; background: #fff; font-family: monospace; font-size: 0.8rem; line-height: 1.45; white-space: pre-wrap; overflow: auto; color: var(--text-color); }
+    .is-hidden { display: none !important; }
     .tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
     .small-note { margin-top: 8px; font-size: 0.76rem; color: var(--muted-text); line-height: 1.4; }
+
+    .tape-blocks-panel { border: 1px solid var(--border-color); border-radius: 10px; overflow: hidden; margin-top: 12px; }
+    .tape-blocks-panel-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-text); font-weight: 700; padding: 10px 12px; background: #f8fafc; border-bottom: 1px solid var(--border-color); }
+    .tape-block-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--border-color); }
+    .tape-block-row:last-child { border-bottom: none; }
+    .tape-block-row.tape-block-data { background: #f1f5f9; }
+    .tape-block-row.tape-block-corrupt { background: #fef2f2; }
+    .tape-block-index { font-size: 0.75rem; color: var(--muted-text); width: 16px; flex-shrink: 0; text-align: right; }
+    .tape-block-icon { width: 20px; height: 20px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--accent-color); }
+    .tape-block-row.tape-block-corrupt .tape-block-icon { color: #dc2626; }
+    .tape-block-info { flex: 1; min-width: 0; }
+    .tape-block-name { font-size: 0.85rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tape-block-meta { font-size: 0.72rem; color: var(--muted-text); margin-top: 2px; }
+    .tape-block-time { font-size: 0.78rem; color: var(--muted-text); flex-shrink: 0; font-variant-numeric: tabular-nums; }
+
+    .extra-header-card { border: 1px solid var(--border-color); border-radius: 10px; background: #f8fafc; padding: 10px; margin-bottom: 8px; }
+    .extra-header-card .control-group { margin-bottom: 8px; }
+    .extra-header-card .control-group:last-child { margin-bottom: 0; }
+    .extra-header-card textarea { min-height: 60px; }
+    .extra-header-row-btns { display: flex; gap: 8px; }
+    .extra-header-row-btns button { flex: 1; min-height: 36px; padding: 6px 10px; font-size: 0.78rem; border-radius: 6px; border: 1px solid var(--border-color); background: white; cursor: pointer; font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; color: var(--muted-text); }
+    .extra-header-row-btns button:hover { background: #f1f5f9; }
+    .extra-header-row-btns button.danger { color: #dc2626; border-color: #fecaca; }
+
+    .dither-version-toggle { display: flex; gap: 6px; margin-top: 8px; }
+    .dither-version-btn { flex: 1; padding: 8px 6px; font-size: 0.76rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; border-radius: 10px; border: 1px solid var(--border-color); background: white; color: var(--muted-text); cursor: pointer; text-align: center; transition: transform 0.12s ease, opacity 0.12s ease, background-color 0.15s ease; }
+    .dither-version-btn.active { background: var(--accent-color); border-color: var(--accent-color); color: white; }
+    .dither-version-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .palette-preview { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; }
+    .palette-swatch { aspect-ratio: 1 / 1; border-radius: 6px; border: 1px solid rgba(15, 23, 42, 0.12); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18); }
+    .palette-caption { margin-top: 8px; font-size: 0.76rem; color: var(--muted-text); line-height: 1.4; }
+    .beta-pill { display: inline-block; margin-left: 6px; padding: 2px 6px; border-radius: 999px; background: #7c3aed; color: #fff; font-size: 0.68rem; font-weight: 800; vertical-align: middle; letter-spacing: 0.03em; }
     .social-links { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
     .social-link { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text-color); padding: 10px; border-radius: 8px; background: #f8fafc; border: 1px solid var(--border-color); transition: background 0.2s; }
     .social-link:hover { background: #e2e8f0; }
@@ -286,13 +366,31 @@
     .manual-body ul { margin-left: 20px; margin-bottom: 8px; list-style-type: disc; }
     .manual-body code { background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.8rem; font-weight: bold; color: var(--accent-hover); }
     .mode-badge { display: inline-block; padding: 2px 6px; background: #2563eb; color: #fff; font-size: 0.7rem; border-radius: 4px; font-weight: bold; margin-left: 6px; }
+
+    /* ---- v1.5.2.9: ASM compile log ---- */
+    .asm-log { margin-top: 12px; border: 1px solid var(--border-color); border-radius: 12px; background: var(--card-bg); overflow: hidden; }
+    .asm-log-head { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--border-color); }
+    .asm-log-title { font-weight: 700; font-size: 0.85rem; margin-right: auto; }
+    .log-chip { border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); border-radius: 999px; padding: 3px 10px; font-size: 0.72rem; font-weight: 600; cursor: pointer; }
+    .log-chip.active { background: var(--accent-color); color: #fff; border-color: var(--accent-color); }
+    .log-tool { border: none; background: transparent; color: var(--accent-color); font-size: 0.75rem; font-weight: 700; cursor: pointer; padding: 3px 6px; }
+    .asm-log-body { max-height: 240px; overflow: auto; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 0.76rem; }
+    .asm-log-body .log-row { display: flex; gap: 8px; padding: 6px 10px; border-bottom: 1px solid var(--border-color); align-items: flex-start; }
+    .asm-log-body .log-row:last-child { border-bottom: none; }
+    .log-badge { flex: none; min-width: 54px; text-align: center; border-radius: 6px; padding: 1px 6px; font-weight: 700; font-size: 0.68rem; color: #fff; }
+    .log-error .log-badge { background: #dc2626; } .log-warning .log-badge { background: #d97706; } .log-success .log-badge { background: #16a34a; } .log-info .log-badge { background: #64748b; }
+    .log-time { flex: none; color: var(--muted-text); }
+    .log-msg { flex: 1; word-break: break-word; }
+    .log-line { flex: none; color: var(--accent-color); cursor: pointer; text-decoration: underline; background: none; border: none; font: inherit; }
+    .asm-log-empty { padding: 14px; text-align: center; color: var(--muted-text); font-size: 0.78rem; }
+    .font-preview { margin-top: 8px; padding: 10px 12px; border: 1px dashed var(--border-color); border-radius: 10px; font-size: 1.05rem; }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>ZX Mobile Tape Loader</h1>
-    <p>Retro-Computing Image Converter &amp; Simulator • v1.3.6.2</p>
+    <h1 onclick="handleLogoTap()">ZX Mobile Tape Loader <span class="beta-pill">v1.5.2.9-RELEASE</span></h1>
+    <p>Retro-Computing Image Converter &amp; Simulator • v1.5.1-release</p>
   </header>
 
   <div class="main-container">
@@ -384,6 +482,72 @@
         <input type="text" id="param-user-palette" placeholder="#000000,#0000FF,#FF0000,#FF00FF,#00FF00,#00FFFF,#FFFF00,#FFFFFF">
       </div>
 
+      <div class="feature-panel" style="margin-bottom: 12px;">
+        <h4>Palette Preview</h4>
+        <div id="spectrum-palette-preview" class="palette-preview"></div>
+        <div class="palette-caption">Preview updates from the selected strategy, custom palette, and active Spectrum mode.</div>
+        <div class="tool-grid">
+          <button class="action-btn secondary-btn" type="button" onclick="resetSpectrumizerPalette()">Reset Palette</button>
+          <button class="action-btn secondary-btn" type="button" onclick="updateSpectrumPalettePreview()">Refresh Preview</button>
+        </div>
+      </div>
+
+      <div class="feature-grid" style="margin-bottom: 12px;">
+        <div class="feature-panel">
+          <h4>Palette Bias</h4>
+          <select id="param-palette-bias">
+            <option value="auto">Auto</option>
+            <option value="warm">Warm</option>
+            <option value="cool">Cool</option>
+            <option value="contrast">High Contrast</option>
+          </select>
+          <div class="small-note">Shifts the active Spectrum palette toward a warmer, cooler, or stronger contrast look.</div>
+        </div>
+        <div class="feature-panel">
+          <div class="switch-container" style="padding: 0; min-height: 44px;">
+            <span style="font-size: 0.85rem; font-weight: 600; color: var(--muted-text); text-transform: uppercase; line-height: 1.2;">Edge Boost</span>
+            <label class="switch">
+              <input type="checkbox" id="param-edge-boost" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="small-note">Adds a light edge-preservation boost during image conversion for sharper Spectrum-style results.</div>
+        </div>
+      </div>
+
+      <div class="feature-panel" style="margin-bottom: 12px;">
+        <div class="switch-container" style="padding: 0; min-height: 44px;">
+          <span style="font-size: 0.85rem; font-weight: 600; color: var(--muted-text); text-transform: uppercase; line-height: 1.2;">Show Clash Heatmap</span>
+          <label class="switch">
+            <input type="checkbox" id="param-clash-heatmap">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="small-note">Overlays each 8x8 attribute cell in red, brighter where more pixels had to be forced onto the wrong INK/PAPER colour — the classic Spectrum "colour clash" spots.</div>
+      </div>
+
+      <div class="feature-grid" style="margin-bottom: 12px;">
+        <div class="feature-panel">
+          <h4>Gamma Bias</h4>
+          <select id="param-gamma-bias">
+            <option value="auto">Auto</option>
+            <option value="soft">Soft</option>
+            <option value="sharp">Sharp</option>
+          </select>
+          <div class="small-note">A tiny gamma touch for smoother or punchier Spectrum conversions.</div>
+        </div>
+        <div class="feature-panel">
+          <div class="switch-container" style="padding: 0; min-height: 44px;">
+            <span style="font-size: 0.85rem; font-weight: 600; color: var(--muted-text); text-transform: uppercase; line-height: 1.2;">Auto Preview Refresh</span>
+            <label class="switch">
+              <input type="checkbox" id="param-auto-refresh" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="small-note">Keeps the preview in sync while you tweak image controls.</div>
+        </div>
+      </div>
+
       <div class="info-block">
         Leave the export filename blank to type your own program name before saving the tape.
       </div>
@@ -401,7 +565,7 @@
         <div class="control-group" style="margin-bottom: 0;">
           <label>Pixel Chunk Size</label>
           <select id="param-chunk">
-            <option value="1">1x1 (High-Res)</option>
+                        <option value="1">1x1 (High-Res)</option>
             <option value="2">2x2 (Chunky)</option>
             <option value="4">4x4 (Blocky)</option>
           </select>
@@ -440,6 +604,12 @@
         </label>
       </div>
 
+      <div class="dither-version-toggle">
+        <button type="button" class="dither-version-btn" id="dither-version-1-btn" onclick="setDitherVersion(1)">Version 1</button>
+        <button type="button" class="dither-version-btn" id="dither-version-2-btn" onclick="setDitherVersion(2)">Version 2</button>
+      </div>
+      <div class="small-note" style="margin-top: 6px;">Version 1 uses ordered (Bayer matrix) dithering — a regular crosshatch/grid texture. Version 2 uses Floyd-Steinberg error diffusion — smoother, closer to the source photo. Applies here and to the BASIC Editor's loading screen.</div>
+
       <div class="switch-container">
         <span style="font-size: 0.85rem; font-weight: 600; color: var(--muted-text); text-transform: uppercase;">Print-Ready Monochrome (1-bit)</span>
         <label class="switch">
@@ -462,13 +632,30 @@
       </div>
 
       <div class="info-block">
-        The filename box starts blank so you can type your own program name. Choose TAP or TZX before exporting.
+        The filename box starts blank so you can type your own program name. Choose TAP or TZX before exporting. Spectrumizer controls update the image automatically, and Reset returns the Spectrumizer to its defaults. Pixel chunk size now stays on real block modes only. Use a modern browser download flow on Android so the file saves directly from the browser, not a file manager.
       </div>
 
       <div class="btn-grid">
-        <button class="action-btn" onclick="applyImageScaling()">Re-render Image</button>
+        <button class="action-btn" onclick="resetSpectrumizerSettings()">Reset Spectrumizer</button>
         <button class="action-btn secondary-btn" onclick="exportConvertedToTap()">Export SCR .TAP / .TZX</button>
       </div>
+      <div class="btn-grid" style="margin-top: 8px;">
+        <button class="action-btn secondary-btn" onclick="autoContrastSpectrumizer()">Auto-Contrast</button>
+        <button class="action-btn secondary-btn" onclick="downloadSpectrumizerPreviewPng()">Download PNG Preview</button>
+      </div>
+      <div class="btn-grid" style="margin-top: 8px;">
+        <button class="action-btn secondary-btn" onclick="invertSpectrumizerSource()">Invert Source Colours</button>
+        <button class="action-btn secondary-btn" onclick="compareSpectrumizerPreview()">Before / After Compare</button>
+      </div>
+      <div class="btn-grid" style="margin-top: 8px;">
+        <button class="action-btn secondary-btn" onclick="flipSpectrumizerSource('h')">Flip Horizontal</button>
+        <button class="action-btn secondary-btn" onclick="flipSpectrumizerSource('v')">Flip Vertical</button>
+      </div>
+      <div class="btn-grid" style="margin-top: 8px;">
+        <button class="action-btn secondary-btn" onclick="downloadSpectrumizerScr()">Download Raw .SCR</button>
+        <button class="action-btn secondary-btn" onclick="showSpectrumizerColourUsage()">Colour Usage</button>
+      </div>
+      <div id="spectrumizer-colour-usage" class="readonly-box" style="display: none; margin-top: 8px; font-family: monospace; white-space: pre; font-size: 0.78rem; line-height: 1.5;"></div>
     </div>
 
     <!-- 48k & 128k Sinclair Basic Editor -->
@@ -508,6 +695,37 @@
       </div>
 
       <div class="control-group">
+        <label>Pixel Chunk Size</label>
+        <select id="basic-chunk">
+          <option value="1">1x1 (High-Res)</option>
+          <option value="2">2x2 (Chunky)</option>
+          <option value="4">4x4 (Blocky)</option>
+        </select>
+      </div>
+
+      <div class="feature-grid" style="margin-bottom: 12px;">
+        <div class="feature-panel">
+          <h4>Workflow Mode</h4>
+          <select id="basic-workflow-mode">
+            <option value="loader">Loader</option>
+            <option value="demo">Demo</option>
+            <option value="utility">Utility</option>
+            <option value="listing">Listing</option>
+          </select>
+          <div class="small-note">Changes the way the BASIC summary describes the current listing.</div>
+        </div>
+        <div class="feature-panel">
+          <h4>Line Density</h4>
+          <select id="basic-density">
+            <option value="compact">Compact</option>
+            <option value="standard">Standard</option>
+            <option value="extended">Extended</option>
+          </select>
+          <div class="small-note">Helps tune the editor summary for short demos or longer listings.</div>
+        </div>
+      </div>
+
+      <div class="control-group">
         <label>Tape Data Format</label>
         <select id="basic-tape-format">
           <option value="tap">TAP (Standard)</option>
@@ -535,18 +753,32 @@
 
       <div class="feature-grid">
         <div class="feature-panel">
-          <h4>Syntax Highlight Preview</h4>
+          <div class="panel-head">
+            <h4>Syntax Highlight Preview</h4>
+            <button class="toggle-mini-btn" type="button" data-target="basic-syntax-preview" onclick="toggleResultView(this)">Hide</button>
+          </div>
           <div id="basic-syntax-preview" class="readonly-box">Type BASIC to see syntax highlighting...</div>
         </div>
         <div class="feature-panel">
-          <h4>Variable Explorer</h4>
+          <div class="panel-head">
+            <h4>Variable Explorer</h4>
+            <button class="toggle-mini-btn" type="button" data-target="basic-variable-explorer" onclick="toggleResultView(this)">Hide</button>
+          </div>
           <div id="basic-variable-explorer" class="readonly-box">No variables found yet.</div>
         </div>
       </div>
 
       <div class="feature-panel" style="margin-top: 10px;">
-        <h4>Tokenized BASIC Viewer</h4>
+        <div class="panel-head">
+          <h4>Tokenized BASIC Viewer</h4>
+          <button class="toggle-mini-btn" type="button" data-target="basic-token-viewer" onclick="toggleResultView(this)">Hide</button>
+        </div>
         <div id="basic-token-viewer" class="readonly-box" style="min-height: 90px;">No BASIC lines to tokenize yet.</div>
+      </div>
+
+      <div class="feature-panel" style="margin-top: 10px;">
+        <h4>Program Summary</h4>
+        <div id="basic-program-summary" class="readonly-box" style="min-height: 90px;">No BASIC summary yet.</div>
       </div>
 
       <div class="tool-grid">
@@ -554,9 +786,51 @@
         <button class="action-btn secondary-btn" type="button" onclick="autoIndentBasicCode()">Auto-Indent</button>
         <button class="action-btn secondary-btn" type="button" onclick="insertScreenLoader()">Insert SCREEN$ Loader</button>
         <button class="action-btn secondary-btn" type="button" onclick="updateBasicEditorViews()">Token Preview</button>
+        <button class="action-btn secondary-btn" type="button" onclick="toggleEditorViews('basic', true)">Show All Views</button>
+        <button class="action-btn secondary-btn" type="button" onclick="toggleEditorViews('basic', false)">Hide All Views</button>
+        <button class="action-btn secondary-btn" type="button" onclick="copyBasicCodeToClipboard()">Copy Code</button>
+        <button class="action-btn secondary-btn" type="button" onclick="lintBasicCode()">Check for Issues</button>
+        <button class="action-btn secondary-btn" type="button" onclick="uppercaseBasicKeywords()">Uppercase Keywords</button>
+        <button class="action-btn secondary-btn" type="button" onclick="downloadBasicSource()">Download .BAS</button>
       </div>
 
-      <div class="small-note">These helpers make it easier to clean up BASIC listings, prepare loader demos, and keep image programs in a consistent format.</div>
+      <div class="control-group" style="margin-top: 4px;">
+        <label>Find &amp; Replace</label>
+        <input type="text" id="basic-find-input" placeholder="Find..." style="margin-bottom: 6px;">
+        <input type="text" id="basic-replace-input" placeholder="Replace with..." style="margin-bottom: 6px;">
+        <div class="switch-container" style="padding: 2px 0;">
+          <span style="font-size: 0.8rem; color: var(--muted-text);">Match case</span>
+          <label class="switch"><input type="checkbox" id="basic-find-case"><span class="slider"></span></label>
+        </div>
+        <div class="btn-grid">
+          <button class="action-btn secondary-btn" type="button" onclick="findInBasicCode()">Count Matches</button>
+          <button class="action-btn secondary-btn" type="button" onclick="replaceInBasicCode()">Replace All</button>
+        </div>
+      </div>
+
+      <div class="control-group" style="margin-top: 4px;">
+        <label>Insert Snippet</label>
+        <div class="slider-row" style="gap: 8px;">
+          <select id="basic-snippet-picker">
+            <option value="border-cycle">Border Colour Cycle</option>
+            <option value="ink-paper">INK / PAPER Setup</option>
+            <option value="for-next">FOR / NEXT Loop</option>
+            <option value="input-prompt">INPUT Prompt</option>
+            <option value="beep-tune">BEEP Tune</option>
+          </select>
+          <button class="action-btn secondary-btn" type="button" style="width: auto; padding-left: 20px; padding-right: 20px;" onclick="insertBasicSnippet()">Insert</button>
+        </div>
+      </div>
+
+      <div class="feature-panel" style="margin-top: 10px;" id="basic-lint-panel-wrap">
+        <div class="panel-head">
+          <h4>Code Check</h4>
+          <button class="toggle-mini-btn" type="button" data-target="basic-lint-results" onclick="toggleResultView(this)">Hide</button>
+        </div>
+        <div id="basic-lint-results" class="readonly-box" style="min-height: 60px;">Click "Check for Issues" to scan your program for common mistakes.</div>
+      </div>
+
+      <div class="small-note">These helpers make it easier to clean up BASIC listings, prepare loader demos, keep image programs in a consistent format, and auto-refresh the preview panels.</div>
 
       <div class="btn-grid">
         <div class="control-group" style="margin-bottom: 0;">
@@ -577,11 +851,39 @@
         </label>
       </div>
 
+      <div class="switch-container" style="margin-top: 8px;">
+        <span style="font-size: 0.85rem; font-weight: 600; color: var(--muted-text); text-transform: uppercase;">Floyd-Steinberg Dithering</span>
+        <label class="switch">
+          <input type="checkbox" id="basic-param-dither" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="dither-version-toggle">
+        <button type="button" class="dither-version-btn" id="basic-dither-version-1-btn" onclick="setDitherVersion(1)">Version 1</button>
+        <button type="button" class="dither-version-btn" id="basic-dither-version-2-btn" onclick="setDitherVersion(2)">Version 2</button>
+      </div>
+      <div class="small-note" style="margin-top: 6px;">Dithering on/off and style for the loading screen — shared with the Spectrumizer tab.</div>
+
+      <div class="feature-panel" style="margin-top: 12px;">
+        <div class="panel-head">
+          <h4>Extra BASIC Data Headers</h4>
+        </div>
+        <div class="small-note" style="margin-top: 0; margin-bottom: 10px;">Add extra named "Code" blocks the tape carries alongside your Program and Loading Screen — for example data tables your BASIC listing loads at runtime with <code>LOAD "" CODE</code>. Use Duplicate to quickly add several.</div>
+        <div id="basic-extra-headers-list"></div>
+        <button class="action-btn secondary-btn" type="button" onclick="addExtraBasicHeader()">+ Add New BASIC Header</button>
+      </div>
+
       <button class="action-btn" style="margin-top: 12px; background-color: #059669;" onclick="compileBasicToTap()">
         Compile to .TAP
       </button>
 
       <div id="basic-compile-status" class="compile-status-box"></div>
+
+      <div id="basic-tape-blocks-panel" class="tape-blocks-panel" style="display: none;">
+        <div class="tape-blocks-panel-title">Tape Blocks</div>
+        <div id="basic-tape-blocks-list"></div>
+      </div>
 
       <div class="info-block">
         Write native ZX Sinclair BASIC. Keywords are automatically tokenized. You can append your converted screen or bitmap image directly into the generated tape file.
@@ -637,14 +939,81 @@
           <div class="small-note">Reads the ORG value from source when possible and keeps the origin field in sync.</div>
         </div>
         <div class="feature-panel">
-          <h4>Live Symbol Browser</h4>
+          <div class="panel-head">
+            <h4>Live Symbol Browser</h4>
+            <button class="toggle-mini-btn" type="button" data-target="asm-symbol-browser" onclick="toggleResultView(this)">Hide</button>
+          </div>
           <div id="asm-symbol-browser" class="readonly-box" style="min-height: 110px;">No labels found.</div>
         </div>
       </div>
 
+      <div class="feature-grid" style="margin-top: 10px;">
+        <div class="feature-panel">
+          <h4>Listing Mode</h4>
+          <select id="asm-listing-mode">
+            <option value="compact">Compact</option>
+            <option value="full">Full</option>
+            <option value="memory-map">Memory Map</option>
+          </select>
+          <div class="small-note">Controls how the ASM summary describes the output listing.</div>
+        </div>
+        <div class="feature-panel">
+          <div class="switch-container" style="padding: 0; min-height: 44px;">
+            <span style="font-size: 0.85rem; font-weight: 600; color: var(--muted-text); text-transform: uppercase; line-height: 1.2;">Sort Symbols</span>
+            <label class="switch">
+              <input type="checkbox" id="asm-sort-symbols" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="small-note">Keeps the live symbol browser tidy and easy to scan.</div>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label>Symbol Filter</label>
+        <input type="text" id="asm-symbol-filter" placeholder="Type to filter labels...">
+      </div>
+
       <div class="feature-panel" style="margin-top: 10px;">
-        <h4>Binary Memory Viewer</h4>
+        <div class="panel-head">
+          <h4>Binary Memory Viewer</h4>
+          <button class="toggle-mini-btn" type="button" data-target="asm-memory-viewer" onclick="toggleResultView(this)">Hide</button>
+        </div>
         <div id="asm-memory-viewer" class="readonly-box" style="min-height: 110px;">Compiled bytes will appear here...</div>
+      </div>
+
+      <div class="feature-panel" style="margin-top: 10px;">
+        <h4>Build Summary</h4>
+        <div id="asm-build-summary" class="readonly-box" style="min-height: 90px;">No build summary yet.</div>
+      </div>
+
+      <div class="feature-panel" style="margin-top: 10px;">
+        <div class="panel-head">
+          <h4>Disassembly Preview</h4>
+          <button class="toggle-mini-btn" type="button" data-target="asm-disassembly-view" onclick="toggleResultView(this)">Hide</button>
+        </div>
+        <div id="asm-disassembly-view" class="readonly-box" style="min-height: 110px; font-family: monospace; white-space: pre;">Compile to see a disassembly listing here...</div>
+      </div>
+
+      <div class="control-group">
+        <label>Insert Snippet</label>
+        <div class="slider-row" style="gap: 8px;">
+          <select id="asm-snippet-picker">
+            <option value="clear-screen">Clear Screen (Attrs + Bitmap)</option>
+            <option value="print-char">Print Char via RST 16</option>
+            <option value="delay-loop">Delay Loop</option>
+            <option value="border-flash">Border Colour Flash</option>
+          </select>
+          <button class="action-btn secondary-btn" type="button" style="width: auto; padding-left: 20px; padding-right: 20px;" onclick="insertAsmSnippet()">Insert</button>
+        </div>
+      </div>
+
+      <div class="tool-grid">
+        <button class="action-btn secondary-btn" type="button" onclick="toggleEditorViews('asm', true)">Show All Views</button>
+        <button class="action-btn secondary-btn" type="button" onclick="toggleEditorViews('asm', false)">Hide All Views</button>
+        <button class="action-btn secondary-btn" type="button" onclick="copyAsmCodeToClipboard()">Copy Code</button>
+        <button class="action-btn secondary-btn" type="button" onclick="downloadAsmBinary()">Download .BIN</button>
+        <button class="action-btn secondary-btn" type="button" onclick="downloadAsmListing()">Download Listing</button>
       </div>
 
       <button class="action-btn" style="margin-top: 12px; background-color: #0f766e;" onclick="compileAsmToTap()">
@@ -652,6 +1021,29 @@
       </button>
 
       <div id="asm-compile-status" class="compile-status-box"></div>
+
+      <div class="btn-grid" style="margin-top: 8px;">
+        <button class="action-btn secondary-btn" type="button" onclick="asmCheckOnly()">Check Only (no .TAP)</button>
+        <button class="action-btn secondary-btn" type="button" onclick="asmGoToFirstProblem()">Jump to First Problem</button>
+      </div>
+      <div class="switch-container" style="margin-top: 8px;">
+        <span style="font-size: 0.82rem; font-weight: 600;">Live check while typing</span>
+        <label class="switch"><input type="checkbox" id="asm-live-check" onchange="setAsmLiveCheck(this.checked)"><span class="slider"></span></label>
+      </div>
+
+      <div class="asm-log" id="asm-log-panel">
+        <div class="asm-log-head">
+          <span class="asm-log-title">Compile Log</span>
+          <button class="log-chip active" data-f="all" onclick="setAsmLogFilter('all')">All <span id="log-n-all">0</span></button>
+          <button class="log-chip" data-f="error" onclick="setAsmLogFilter('error')">Errors <span id="log-n-error">0</span></button>
+          <button class="log-chip" data-f="warning" onclick="setAsmLogFilter('warning')">Warnings <span id="log-n-warning">0</span></button>
+          <button class="log-chip" data-f="success" onclick="setAsmLogFilter('success')">Success <span id="log-n-success">0</span></button>
+          <button class="log-tool" onclick="copyAsmLog()">Copy</button>
+          <button class="log-tool" onclick="downloadAsmLog()">Save</button>
+          <button class="log-tool" onclick="clearAsmLog()">Clear</button>
+        </div>
+        <div class="asm-log-body" id="asm-log-body"><div class="asm-log-empty">No messages yet. Compile or press Check Only.</div></div>
+      </div>
 
       <div class="info-block">
         Practical ZX Spectrum assembly subset: labels, ORG, DB/DEFB, DW/DEFW, DS/DEFS, LD, JP, JR, CALL, RET, RST, INC, DEC, PUSH, POP, and common one-byte instructions. The TAP can include an automatic BASIC loader.
@@ -795,10 +1187,36 @@
         <span style="font-size: 0.75rem; color: var(--muted-text)">Toys</span>
       </div>
 
+      <div class="control-group" style="margin-bottom: 12px;">
+        <label for="font-style-select">Font Style</label>
+        <select id="font-style-select" onchange="setFontStyle(this.value)">
+          <option value="sf-display">SF Pro Display (default)</option>
+          <option value="sf-text">SF Pro Text</option>
+          <option value="sf-rounded">SF Pro Rounded</option>
+          <option value="ny-serif">New York (Serif)</option>
+          <option value="sf-mono">SF Mono (Monospace)</option>
+          <option value="system">System UI</option>
+        </select>
+        <div class="btn-grid" style="margin-top: 8px;">
+          <button class="action-btn secondary-btn" type="button" onclick="adjustFontScale(-10)">A&minus; Smaller</button>
+          <button class="action-btn secondary-btn" type="button" onclick="adjustFontScale(10)">A+ Larger</button>
+        </div>
+        <div class="font-preview" id="font-preview">The quick brown fox loads 48K tapes &mdash; 0123456789</div>
+        <div style="font-size: 0.72rem; color: var(--muted-text); margin-top: 6px;">SF Pro is an Apple system font: it shows on iPhone, iPad and Mac. Other devices fall back to Inter / system fonts automatically.</div>
+      </div>
+
       <div class="switch-container" style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 12px;">
         <span style="font-size: 0.9rem; font-weight: 700; color: var(--text-color);">CRT Tube Overlay Filter</span>
         <label class="switch">
           <input type="checkbox" id="toggle-crt-filter" onchange="toggleCrtFilter(this)">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="switch-container" style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 12px;">
+        <span style="font-size: 0.9rem; font-weight: 700; color: var(--text-color);">UI Sound Effects</span>
+        <label class="switch">
+          <input type="checkbox" id="toggle-sfx" checked onchange="setSfxEnabled(this.checked)">
           <span class="slider"></span>
         </label>
       </div>
@@ -965,11 +1383,12 @@
       <div class="info-block" style="font-size: 0.9rem; color: var(--text-color);">
         <h3 style="color: var(--accent-color); margin-bottom: 8px;">ZX Spectrum Mobile Tape & Image Loader</h3>
         <p>A completely client-side retro-computing tool optimized for mobile browsers.</p>
-        <p style="margin-top: 6px; color: var(--muted-text);">Version 1.3.6.2</p>
+        <p style="margin-top: 6px; color: var(--muted-text);">Version 1.5.1.1-release</p>
         
         <h4 style="margin-top: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px;">Tech Stack</h4>
         <p style="margin-top: 8px;">Built entirely with Vanilla HTML5, CSS3, and JavaScript. Zero external libraries. Utilizes the Canvas API for pixel-perfect attribute clash rendering and the Web Audio API for highly accurate cassette tape synthesis and Schmitt-trigger edge-detection decoding.</p>
-        <p style="margin-top: 8px; color: var(--muted-text);"><strong>Version 1.3.6.2</strong> adds the new Spectrumizer, BASIC Editor, and ASM Converter helper panels shown in the mobile screenshots.</p>
+        <p style="margin-top: 8px; color: var(--muted-text);"><strong>Release v1.5.1.1</strong> keeps downloads in the browser on Android and improves the export flow, BASIC workflow controls, symbol filtering, gamma tuning, and smoother Spectrum refresh.</p>
+        <p style="margin-top: 8px; color: var(--muted-text);"><strong>Version 1.5.1.1-release</strong> adds new Spectrumizer, BASIC Editor, and ASM Converter workflow tools with cleaner result views.</p>
         <p style="margin-top: 8px; color: var(--muted-text);"><strong>Planned features</strong> are tracked in the Manual tab so this HTML file also works as a live roadmap.</p>
 
         <h4 style="margin-top: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px;">Creator</h4>
@@ -1075,8 +1494,14 @@
     let canvasHeight = 192;
 
     let globalRawImage = null; 
+    let sourceInverted = false;
+    let flipHorizontal = false;
+    let flipVertical = false;
+    let comparePreviewActive = false;
     let currentSourceImgData = null; 
     let spectrumScreenBytes = new Uint8Array(6912); 
+    let ditherVersion = 2; // 1 = per-cell confined diffusion, 2 = continuous full-image raster diffusion
+    let cellDetailLoss = new Float32Array(768); // 32x24 attribute-cell "clash severity" heatmap, 0..1 per cell
     let currentImageControlSet = 'converter';
     let basicPhotoImageLoaded = false;
     let currentSpectrumizerMode = 'std-256';
@@ -1089,21 +1514,31 @@
     // Init display & Setup event listeners
     initModeDimensions('std-256');
     clearSpectrumDisplay();
+    updateSpectrumPalettePreview();
 
     document.getElementById('img-upload').addEventListener('change', handleImageUpload);
     document.getElementById('basic-photo-upload').addEventListener('change', handleBasicPhotoUpload);
     document.getElementById('tap-upload').addEventListener('change', handleTapUpload);
-    document.getElementById('param-fit').addEventListener('change', () => applyImageScaling('converter'));
-    document.getElementById('basic-fit-mode').addEventListener('change', () => applyImageScaling('basic'));
-    document.getElementById('param-chunk').addEventListener('change', () => applyImageScaling());
-    
+
+    const converterAutoRefresh = () => {
+      if (globalRawImage && currentImageControlSet === 'converter') applyImageScaling('converter');
+    };
+    const basicAutoRefresh = () => {
+      if (globalRawImage && currentImageControlSet === 'basic') applyImageScaling('basic');
+    };
+
+    document.getElementById('param-fit').addEventListener('change', converterAutoRefresh);
+    document.getElementById('param-chunk').addEventListener('change', converterAutoRefresh);
+    document.getElementById('basic-fit-mode').addEventListener('change', basicAutoRefresh);
+    document.getElementById('basic-chunk').addEventListener('change', basicAutoRefresh);
+
     document.getElementById('param-video-mode').addEventListener('change', (e) => {
       initModeDimensions(e.target.value);
       const monoBox = document.getElementById('param-monochrome');
       monoBox.checked = (e.target.value === 'mono-std');
-      if (globalRawImage) {
-        applyImageScaling();
-      } else {
+      if (globalRawImage && currentImageControlSet === 'converter') {
+        applyImageScaling('converter');
+      } else if (!globalRawImage) {
         clearSpectrumDisplay();
       }
     });
@@ -1128,6 +1563,9 @@
       const val = document.getElementById(`val-${id}`);
       input.addEventListener('input', () => {
         val.textContent = input.value;
+        if (globalRawImage) {
+          applyImageScaling(currentImageControlSet);
+        }
       });
     });
 
@@ -1142,8 +1580,83 @@
     document.getElementById('asm-origin').addEventListener('input', updateAsmEditorViews);
     document.getElementById('asm-runaddr').addEventListener('input', updateAsmEditorViews);
     document.getElementById('asm-auto-org').addEventListener('change', updateAsmEditorViews);
+
+    document.getElementById('param-palette-strategy').addEventListener('change', () => {
+      updateSpectrumPalettePreview();
+      if (globalRawImage && currentImageControlSet === 'converter') applyImageScaling('converter');
+    });
+    document.getElementById('param-palette-bias')?.addEventListener('change', () => {
+      updateSpectrumPalettePreview();
+      if (globalRawImage && currentImageControlSet === 'converter') applyImageScaling('converter');
+    });
+    document.getElementById('param-user-palette').addEventListener('input', () => {
+      updateSpectrumPalettePreview();
+      if (globalRawImage && currentImageControlSet === 'converter') applyImageScaling('converter');
+    });
+    document.getElementById('param-clash-reduction').addEventListener('change', () => {
+      updateSpectrumPalettePreview();
+      if (globalRawImage && currentImageControlSet === 'converter') applyImageScaling('converter');
+    });
+    document.getElementById('param-edge-boost')?.addEventListener('change', () => {
+      if (globalRawImage && currentImageControlSet === 'converter') applyImageScaling('converter');
+    });
+    document.getElementById('param-clash-heatmap')?.addEventListener('change', () => {
+      renderScrBufferToCanvas();
+    });
+    document.getElementById('param-dither').addEventListener('change', () => {
+      const basicToggle = document.getElementById('basic-param-dither');
+      if (basicToggle) basicToggle.checked = document.getElementById('param-dither').checked;
+      if (globalRawImage && currentImageControlSet === 'converter') applyImageScaling('converter');
+    });
+    document.getElementById('basic-param-dither')?.addEventListener('change', function() {
+      document.getElementById('param-dither').checked = this.checked;
+      if (globalRawImage && currentImageControlSet === 'basic') applyImageScaling('basic');
+    });
+    function setDitherVersion(version) {
+      ditherVersion = version;
+      updateDitherVersionButtons();
+      if (globalRawImage) applyImageScaling(currentImageControlSet);
+    }
+    function updateDitherVersionButtons() {
+      const pairs = [
+        ['dither-version-1-btn', 'dither-version-2-btn'],
+        ['basic-dither-version-1-btn', 'basic-dither-version-2-btn']
+      ];
+      pairs.forEach(([id1, id2]) => {
+        const btn1 = document.getElementById(id1);
+        const btn2 = document.getElementById(id2);
+        if (btn1) btn1.classList.toggle('active', ditherVersion === 1);
+        if (btn2) btn2.classList.toggle('active', ditherVersion === 2);
+      });
+    }
+    updateDitherVersionButtons();
+    document.getElementById('param-monochrome').addEventListener('change', () => {
+      updateSpectrumPalettePreview();
+      if (globalRawImage && currentImageControlSet === 'converter') applyImageScaling('converter');
+    });
+    document.getElementById('param-gamma-bias')?.addEventListener('change', () => {
+      if (globalRawImage && currentImageControlSet === 'converter') applyImageScaling('converter');
+    });
+    document.getElementById('param-auto-refresh')?.addEventListener('change', () => {
+      if (globalRawImage && currentImageControlSet === 'converter') applyImageScaling('converter');
+    });
+    ['param-brightness', 'param-contrast', 'param-saturation'].forEach(id => {
+      document.getElementById(id).addEventListener('input', () => {
+        if (globalRawImage && currentImageControlSet === 'converter') applyImageScaling('converter');
+      });
+    });
+    document.getElementById('basic-chunk').addEventListener('change', () => {
+      if (basicPhotoImageLoaded && globalRawImage) applyImageScaling('basic');
+    });
+    document.getElementById('basic-workflow-mode').addEventListener('change', updateBasicEditorViews);
+    document.getElementById('basic-density').addEventListener('change', updateBasicEditorViews);
+    document.getElementById('asm-listing-mode').addEventListener('change', updateAsmEditorViews);
+    document.getElementById('asm-sort-symbols').addEventListener('change', updateAsmEditorViews);
+    document.getElementById('asm-symbol-filter')?.addEventListener('input', updateAsmEditorViews);
+
     updateBasicEditorViews();
     updateAsmEditorViews();
+    updateSpectrumPalettePreview();
 
     // Tape Handling globals
     let activeTapeBlocks = []; 
@@ -1151,6 +1664,149 @@
 
     // Simulator runtime variables
     let simulatorAudioCtx = null;
+
+    // ----------------------------------------------------
+    // UI Sound Effects
+    // ----------------------------------------------------
+    let sfxEnabled = true;
+    try {
+      const savedSfxPref = localStorage.getItem('zx-sfx-enabled');
+      if (savedSfxPref !== null) sfxEnabled = savedSfxPref === 'true';
+    } catch (e) { /* localStorage unavailable — keep default */ }
+
+    function setSfxEnabled(enabled) {
+      sfxEnabled = enabled;
+      try { localStorage.setItem('zx-sfx-enabled', String(enabled)); } catch (e) { /* ignore */ }
+    }
+
+    function playTone(freq, startTime, duration, type, peakGain) {
+      const osc = simulatorAudioCtx.createOscillator();
+      const gain = simulatorAudioCtx.createGain();
+      osc.type = type || 'sine';
+      osc.frequency.setValueAtTime(freq, startTime);
+      gain.gain.setValueAtTime(0.0001, startTime);
+      gain.gain.exponentialRampToValueAtTime(peakGain || 0.12, startTime + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+      osc.connect(gain);
+      gain.connect(simulatorAudioCtx.destination);
+      osc.start(startTime);
+      osc.stop(startTime + duration + 0.02);
+    }
+
+    function playUiClick() {
+      if (!sfxEnabled) return;
+      initSimulatorAudioContext();
+      const now = simulatorAudioCtx.currentTime;
+      playTone(1500, now, 0.035, 'square', 0.05);
+    }
+
+    function playUiToggle(isOn) {
+      if (!sfxEnabled) return;
+      initSimulatorAudioContext();
+      const now = simulatorAudioCtx.currentTime;
+      playTone(isOn ? 1100 : 700, now, 0.05, 'sine', 0.08);
+    }
+
+    function playUiSuccess() {
+      if (!sfxEnabled) return;
+      initSimulatorAudioContext();
+      const now = simulatorAudioCtx.currentTime;
+      playTone(659, now, 0.11, 'sine', 0.09);
+      playTone(880, now + 0.09, 0.11, 'sine', 0.09);
+      playTone(1318, now + 0.18, 0.18, 'sine', 0.09);
+    }
+
+    function playUiError() {
+      if (!sfxEnabled) return;
+      initSimulatorAudioContext();
+      const now = simulatorAudioCtx.currentTime;
+      playTone(220, now, 0.16, 'sawtooth', 0.07);
+      playTone(160, now + 0.1, 0.2, 'sawtooth', 0.07);
+    }
+
+    // A single delegated listener covers every button/tab/upload-label app-wide,
+    // so buttons added later (extra BASIC headers, tape blocks, etc.) get the
+    // click sound automatically without needing individual wiring.
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('button, .tab-btn, label.upload-btn, .dither-version-btn')) {
+        playUiClick();
+      }
+    });
+    document.addEventListener('change', (e) => {
+      if (e.target.matches('input[type="checkbox"]')) {
+        playUiToggle(e.target.checked);
+      }
+    });
+
+    // ----------------------------------------------------
+    // Hidden Easter Eggs (3)
+    // ----------------------------------------------------
+    function showEasterEggToast(message, emoji) {
+      const toast = document.createElement('div');
+      toast.className = 'easter-egg-toast';
+      toast.innerHTML = `<span style="font-size:1.3rem;">${emoji || '\u2728'}</span><span>${message}</span>`;
+      document.body.appendChild(toast);
+      requestAnimationFrame(() => toast.classList.add('show'));
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 400);
+      }, 3400);
+    }
+
+    // Egg 1: Konami Code (\u2191\u2191\u2193\u2193\u2190\u2192\u2190\u2192 B A)
+    const KONAMI_SEQUENCE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+    let konamiProgress = 0;
+    document.addEventListener('keydown', (e) => {
+      const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+      const expected = KONAMI_SEQUENCE[konamiProgress];
+      if (key === expected) {
+        konamiProgress++;
+        if (konamiProgress === KONAMI_SEQUENCE.length) {
+          konamiProgress = 0;
+          triggerKonamiEasterEgg();
+        }
+      } else {
+        konamiProgress = (key === KONAMI_SEQUENCE[0]) ? 1 : 0;
+      }
+    });
+
+    function triggerKonamiEasterEgg() {
+      playUiSuccess();
+      const overlay = document.createElement('div');
+      overlay.className = 'konami-overlay';
+      overlay.innerHTML = '<div class="konami-text">\u{1F308} KEEP ON LOADING \u{1F308}<span>Konami Code Unlocked</span></div>';
+      document.body.appendChild(overlay);
+      requestAnimationFrame(() => overlay.classList.add('show'));
+      setTimeout(() => {
+        overlay.classList.remove('show');
+        setTimeout(() => overlay.remove(), 550);
+      }, 2600);
+    }
+
+    // Egg 2: tap the header title 7 times quickly
+    let logoTapCount = 0;
+    let logoTapTimer = null;
+    function handleLogoTap() {
+      logoTapCount++;
+      clearTimeout(logoTapTimer);
+      logoTapTimer = setTimeout(() => { logoTapCount = 0; }, 1500);
+      if (logoTapCount >= 7) {
+        logoTapCount = 0;
+        playUiSuccess();
+        showEasterEggToast('Made with care for the Sinclair spirit \u2014 est. 1982', '\u{1F47E}');
+      }
+    }
+
+    // Egg 3: type "MANIC" into the BASIC code editor
+    let manicEggTriggered = false;
+    document.getElementById('basic-code').addEventListener('input', function() {
+      if (!manicEggTriggered && /MANIC/i.test(this.value)) {
+        manicEggTriggered = true;
+        playUiSuccess();
+        showEasterEggToast('Manic Miner spirit detected \u2014 Willy says hi!', '\u26CF\uFE0F');
+      }
+    });
+
     let simulatorPlayState = 'stopped'; 
     let simBlockIndex = 0;
     let simByteIndex = 0;
@@ -1203,6 +1859,7 @@
       document.getElementById(tabId).classList.add('active');
 
       if (tabId === 'tab-converter') {
+        updateSpectrumPalettePreview();
         renderScrBufferToCanvas();
       }
     }
@@ -1216,6 +1873,254 @@
       } else {
         body.style.display = 'block';
         symbol.textContent = '−';
+      }
+    }
+
+    function toggleResultView(buttonEl) {
+      const targetId = buttonEl?.dataset?.target;
+      if (!targetId) return;
+      const target = document.getElementById(targetId);
+      if (!target) return;
+      const nextHidden = !target.classList.contains('is-hidden');
+      target.classList.toggle('is-hidden', nextHidden);
+      buttonEl.textContent = nextHidden ? 'Show' : 'Hide';
+    }
+
+    function toggleEditorViews(prefix, showAll) {
+      const ids = prefix === 'basic'
+        ? ['basic-syntax-preview', 'basic-variable-explorer', 'basic-token-viewer', 'basic-program-summary', 'basic-lint-results']
+        : ['asm-symbol-browser', 'asm-memory-viewer', 'asm-build-summary', 'asm-disassembly-view'];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('is-hidden', !showAll);
+      });
+      document.querySelectorAll(`button[data-target^="${prefix === 'basic' ? 'basic-' : 'asm-'}"]`).forEach(btn => {
+        btn.textContent = showAll ? 'Hide' : 'Show';
+      });
+    }
+
+    function resetSpectrumizerPalette() {
+      const strategy = document.getElementById('param-palette-strategy');
+      const bias = document.getElementById('param-palette-bias');
+      const paletteInput = document.getElementById('param-user-palette');
+      const clashReduction = document.getElementById('param-clash-reduction');
+      const edgeBoost = document.getElementById('param-edge-boost');
+      if (strategy) strategy.value = 'auto';
+      if (bias) bias.value = 'auto';
+      if (paletteInput) paletteInput.value = '';
+      if (clashReduction) clashReduction.checked = true;
+      if (edgeBoost) edgeBoost.checked = true;
+      updateSpectrumPalettePreview();
+      if (globalRawImage && currentImageControlSet === 'converter') applyImageScaling('converter');
+    }
+
+    function autoContrastSpectrumizer() {
+      if (!currentSourceImgData) { playUiError(); return; }
+
+      const data = currentSourceImgData.data;
+      let minLum = 255, maxLum = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+        if (lum < minLum) minLum = lum;
+        if (lum > maxLum) maxLum = lum;
+      }
+      if (maxLum - minLum < 1) { playUiError(); return; }
+
+      const cFactor = 255 / (maxLum - minLum);
+      const bFactor = 128 - minLum - (128 / cFactor);
+
+      let contrastVal = Math.round((cFactor * 100) - 100);
+      let brightnessVal = Math.round((bFactor / 255) * 100);
+      contrastVal = Math.max(-100, Math.min(100, contrastVal));
+      brightnessVal = Math.max(-100, Math.min(100, brightnessVal));
+
+      document.getElementById('param-brightness').value = brightnessVal;
+      document.getElementById('param-contrast').value = contrastVal;
+      const brightSpan = document.getElementById('val-brightness');
+      const contrastSpan = document.getElementById('val-contrast');
+      if (brightSpan) brightSpan.textContent = brightnessVal;
+      if (contrastSpan) contrastSpan.textContent = contrastVal;
+
+      if (globalRawImage) applyImageScaling(currentImageControlSet);
+    }
+
+    function downloadSpectrumizerPreviewPng() {
+      const previewCanvas = document.getElementById('spectrum-canvas');
+      if (!previewCanvas || !previewCanvas.toBlob) { playUiError(); return; }
+
+      previewCanvas.toBlob((blob) => {
+        if (!blob) { playUiError(); return; }
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const rawName = (document.getElementById('tap-filename')?.value || '').trim();
+        a.href = url;
+        a.download = (rawName || 'spectrum-image') + '.png';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+      }, 'image/png');
+    }
+
+    function flipPixelBuffer(data, w, h, horizontal, vertical) {
+      if (horizontal) {
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < Math.floor(w / 2); x++) {
+            const a = (y * w + x) * 4;
+            const b = (y * w + (w - 1 - x)) * 4;
+            for (let c = 0; c < 4; c++) { const t = data[a + c]; data[a + c] = data[b + c]; data[b + c] = t; }
+          }
+        }
+      }
+      if (vertical) {
+        for (let y = 0; y < Math.floor(h / 2); y++) {
+          for (let x = 0; x < w; x++) {
+            const a = (y * w + x) * 4;
+            const b = ((h - 1 - y) * w + x) * 4;
+            for (let c = 0; c < 4; c++) { const t = data[a + c]; data[a + c] = data[b + c]; data[b + c] = t; }
+          }
+        }
+      }
+    }
+
+    function flipSpectrumizerSource(axis) {
+      if (!globalRawImage) { playUiError(); return; }
+      if (axis === 'h') flipHorizontal = !flipHorizontal; else flipVertical = !flipVertical;
+      applyImageScaling(currentImageControlSet);
+    }
+
+    function downloadSpectrumizerScr() {
+      if (!globalRawImage || (spectrumScreenBytes.length !== 6912 && spectrumScreenBytes.length !== 12288)) {
+        playUiError();
+        showEasterEggToast('Raw .SCR export works in Standard and Timex Hi-Colour modes with an image loaded.', '\u26A0\uFE0F');
+        return;
+      }
+      const base = sanitizeDownloadName((document.getElementById('tap-filename')?.value || '').trim() || 'spectrum-image', 'spectrum-image');
+      triggerBlobDownload(new Blob([spectrumScreenBytes.slice()], { type: 'application/octet-stream' }), `${base}.scr`, 'application/octet-stream');
+    }
+
+    function showSpectrumizerColourUsage() {
+      const box = document.getElementById('spectrumizer-colour-usage');
+      if (!box) return;
+      const bytes = spectrumScreenBytes;
+      if (!globalRawImage || (bytes.length !== 6912 && bytes.length !== 12288)) {
+        playUiError();
+        box.style.display = 'block';
+        box.textContent = 'Colour usage is available for Standard and Timex Hi-Colour modes once an image is loaded.';
+        return;
+      }
+      const names = ['Black', 'Blue', 'Red', 'Magenta', 'Green', 'Cyan', 'Yellow', 'White'];
+      const counts = {};
+      for (let y = 0; y < 192; y++) {
+        const addr = (Math.floor(y / 64) * 2048) + ((y % 8) * 256) + (Math.floor((y % 64) / 8) * 32);
+        for (let cx = 0; cx < 32; cx++) {
+          const bitmapByte = bytes[addr + cx];
+          const attr = bytes.length === 12288 ? bytes[6144 + addr + cx] : bytes[6144 + (y >> 3) * 32 + cx];
+          const bright = (attr & 0x40) && (attr & 0x07) !== 0 ;
+          let inkCount = 0;
+          for (let bit = 0; bit < 8; bit++) if (bitmapByte & (0x80 >> bit)) inkCount++;
+          const inkIdx = attr & 7, paperIdx = (attr >> 3) & 7;
+          const inkB = (attr & 0x40) && inkIdx !== 0, paperB = (attr & 0x40) && paperIdx !== 0;
+          const inkName = (inkB ? 'Bright ' : '') + names[inkIdx];
+          const paperName = (paperB ? 'Bright ' : '') + names[paperIdx];
+          counts[inkName] = (counts[inkName] || 0) + inkCount;
+          counts[paperName] = (counts[paperName] || 0) + (8 - inkCount);
+        }
+      }
+      const total = 49152;
+      const rows = Object.entries(counts).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
+      box.style.display = 'block';
+      box.textContent = rows.map(([name, n]) => {
+        const pct = (n / total) * 100;
+        return `${name.padEnd(15)} ${'\u2588'.repeat(Math.max(1, Math.round(pct / 4)))} ${pct.toFixed(1)}%`;
+      }).join('\n');
+    }
+
+    function invertSpectrumizerSource() {
+      if (!globalRawImage) { playUiError(); return; }
+      sourceInverted = !sourceInverted;
+      applyImageScaling(currentImageControlSet);
+    }
+
+    function compareSpectrumizerPreview() {
+      if (!globalRawImage) { playUiError(); return; }
+      ctx.save();
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.drawImage(globalRawImage, 0, 0, canvasWidth, canvasHeight);
+      ctx.restore();
+      clearTimeout(compareSpectrumizerPreview._timer);
+      compareSpectrumizerPreview._timer = setTimeout(() => {
+        renderScrBufferToCanvas();
+      }, 1200);
+    }
+
+    function resetSpectrumizerSettings() {
+      sourceInverted = false;
+      flipHorizontal = false;
+      flipVertical = false;
+      const defaults = {
+        mode: 'std-256',
+        fit: 'cover',
+        chunk: '1',
+        brightness: '0',
+        contrast: '0',
+        saturation: '100',
+        dither: true,
+        monochrome: false,
+        strategy: 'auto',
+        bias: 'auto',
+        palette: '',
+        clash: true,
+        edgeBoost: true
+      };
+
+      const modeEl = document.getElementById('param-video-mode');
+      if (modeEl) modeEl.value = defaults.mode;
+      initModeDimensions(defaults.mode);
+
+      const fitEl = document.getElementById('param-fit');
+      if (fitEl) fitEl.value = defaults.fit;
+
+      const chunkEl = document.getElementById('param-chunk');
+      if (chunkEl) chunkEl.value = defaults.chunk;
+
+      const brightEl = document.getElementById('param-brightness');
+      if (brightEl) brightEl.value = defaults.brightness;
+      const brightVal = document.getElementById('val-brightness');
+      if (brightVal) brightVal.textContent = defaults.brightness;
+
+      const contrastEl = document.getElementById('param-contrast');
+      if (contrastEl) contrastEl.value = defaults.contrast;
+      const contrastVal = document.getElementById('val-contrast');
+      if (contrastVal) contrastVal.textContent = defaults.contrast;
+
+      const satEl = document.getElementById('param-saturation');
+      if (satEl) satEl.value = defaults.saturation;
+      const satVal = document.getElementById('val-saturation');
+      if (satVal) satVal.textContent = defaults.saturation;
+
+      const ditherEl = document.getElementById('param-dither');
+      if (ditherEl) ditherEl.checked = defaults.dither;
+
+      const monoEl = document.getElementById('param-monochrome');
+      if (monoEl) monoEl.checked = defaults.monochrome;
+
+      const stratEl = document.getElementById('param-palette-strategy');
+      if (stratEl) stratEl.value = defaults.strategy;
+
+      const palEl = document.getElementById('param-user-palette');
+      if (palEl) palEl.value = defaults.palette;
+
+      const clashEl = document.getElementById('param-clash-reduction');
+      if (clashEl) clashEl.checked = defaults.clash;
+
+      updateSpectrumPalettePreview();
+
+      if (globalRawImage && currentImageControlSet === 'converter') {
+        applyImageScaling('converter');
+      } else if (!globalRawImage) {
+        clearSpectrumDisplay();
       }
     }
 
@@ -1333,6 +2238,7 @@
       const syntaxBox = document.getElementById('basic-syntax-preview');
       const varsBox = document.getElementById('basic-variable-explorer');
       const tokenBox = document.getElementById('basic-token-viewer');
+      const summaryBox = document.getElementById('basic-program-summary');
 
       if (syntaxBox) {
         syntaxBox.innerHTML = source.trim()
@@ -1347,6 +2253,10 @@
 
       if (tokenBox) {
         tokenBox.textContent = tokenPreviewForBasic(source);
+      }
+
+      if (summaryBox) {
+        summaryBox.textContent = buildBasicProgramSummary(source);
       }
     }
 
@@ -1378,6 +2288,221 @@
       updateBasicEditorViews();
     }
 
+    const BASIC_SNIPPETS = {
+      'border-cycle': ['FOR n=0 TO 7', 'BORDER n', 'PAUSE 5', 'NEXT n'],
+      'ink-paper': ['INK 6', 'PAPER 1', 'CLS'],
+      'for-next': ['FOR i=1 TO 10', 'PRINT i', 'NEXT i'],
+      'input-prompt': ['INPUT "Enter your name: ";n$', 'PRINT "Hello "+n$'],
+      'beep-tune': ['BEEP 0.2,0', 'BEEP 0.2,4', 'BEEP 0.2,7', 'BEEP 0.4,12']
+    };
+
+    function insertBasicSnippet() {
+      const picker = document.getElementById('basic-snippet-picker');
+      const snippetLines = BASIC_SNIPPETS[picker.value];
+      if (!snippetLines) return;
+
+      const textarea = document.getElementById('basic-code');
+      const current = textarea.value || '';
+      const existingLines = current.replace(/\r/g, '').split(/\n/).filter(Boolean);
+
+      let lastNum = 0;
+      existingLines.forEach(line => {
+        const m = line.match(/^(\d+)/);
+        if (m) lastNum = Math.max(lastNum, parseInt(m[1], 10));
+      });
+      let nextNum = lastNum > 0 ? lastNum + 10 : 10;
+
+      const numberedSnippet = snippetLines.map(l => {
+        const numbered = `${nextNum} ${l}`;
+        nextNum += 10;
+        return numbered;
+      });
+
+      textarea.value = existingLines.concat(numberedSnippet).join('\n');
+      updateBasicEditorViews();
+    }
+
+    function copyBasicCodeToClipboard() {
+      const textarea = document.getElementById('basic-code');
+      const text = textarea.value || '';
+      const onDone = () => showCompileStatus('Copied BASIC code to clipboard.', false);
+      const onFail = () => showCompileStatus('Could not copy — select and copy manually.', true);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(onDone).catch(onFail);
+      } else {
+        try {
+          textarea.select();
+          document.execCommand('copy');
+          onDone();
+        } catch (e) { onFail(); }
+      }
+    }
+
+    // Returns the statement text with string literals blanked out and any REM comment removed,
+    // so keywords/quotes inside strings or comments don't trigger false linter warnings.
+    function stripBasicStringsAndRem(text) {
+      let out = '';
+      let inStr = false;
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (ch === '"') { inStr = !inStr; out += '"'; continue; }
+        if (inStr) { out += ' '; continue; }
+        if (/[Rr]/.test(ch) && /^REM\b/i.test(text.slice(i)) && (i === 0 || !/[A-Za-z0-9$]/.test(text[i - 1]))) break;
+        out += ch;
+      }
+      return out;
+    }
+
+    function basicRegexEscape(str) { return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+    function findInBasicCode() {
+      const needle = document.getElementById('basic-find-input').value;
+      if (!needle) { showCompileStatus('Type something to find first.', true); return; }
+      const flags = document.getElementById('basic-find-case').checked ? 'g' : 'gi';
+      const count = ((document.getElementById('basic-code').value || '').match(new RegExp(basicRegexEscape(needle), flags)) || []).length;
+      showCompileStatus(count ? `Found ${count} match${count === 1 ? '' : 'es'}.` : 'No matches found.', count === 0);
+    }
+
+    function replaceInBasicCode() {
+      const needle = document.getElementById('basic-find-input').value;
+      const replacement = document.getElementById('basic-replace-input').value;
+      if (!needle) { showCompileStatus('Type something to find first.', true); return; }
+      const flags = document.getElementById('basic-find-case').checked ? 'g' : 'gi';
+      const re = new RegExp(basicRegexEscape(needle), flags);
+      const textarea = document.getElementById('basic-code');
+      const original = textarea.value || '';
+      const count = (original.match(re) || []).length;
+      if (!count) { showCompileStatus('No matches found.', true); return; }
+      textarea.value = original.replace(re, () => replacement);
+      updateBasicEditorViews();
+      showCompileStatus(`Replaced ${count} match${count === 1 ? '' : 'es'}.`, false);
+    }
+
+    function downloadBasicSource() {
+      const text = document.getElementById('basic-code').value || '';
+      if (!text.trim()) { showCompileStatus('Nothing to download — the editor is empty.', true); return; }
+      const rawName = (document.getElementById('basic-filename')?.value || '').trim() || 'program';
+      triggerBlobDownload(new Blob([text], { type: 'text/plain' }), `${sanitizeDownloadName(rawName, 'program')}.bas`, 'text/plain');
+    }
+
+    function uppercaseBasicKeywords() {
+      const textarea = document.getElementById('basic-code');
+      const source = textarea.value || '';
+      if (!source.trim()) { showCompileStatus('Nothing to convert — the editor is empty.', true); return; }
+
+      const keywordSet = new Set(Object.keys(ZX_TOKENS).filter(k => /^[A-Za-z]+\$?$/.test(k)).map(k => k.toUpperCase()));
+      let changed = 0;
+
+      const converted = source.replace(/\r/g, '').split('\n').map(line => {
+        const m = line.match(/^(\s*\d+\s*)(.*)$/);
+        if (!m) return line;
+        const body = m[2];
+        let out = '';
+        let inStr = false;
+        let i = 0;
+        while (i < body.length) {
+          const ch = body[i];
+          if (ch === '"') { inStr = !inStr; out += ch; i++; continue; }
+          if (inStr) { out += ch; i++; continue; }
+          const wm = /^[A-Za-z][A-Za-z0-9]*\$?/.exec(body.slice(i));
+          if (wm && (i === 0 || !/[A-Za-z0-9$]/.test(body[i - 1]))) {
+            const word = wm[0];
+            const up = word.toUpperCase();
+            const isGoWord = up === 'GO' && /^\s*(TO|SUB)\b/i.test(body.slice(i + word.length));
+            if (keywordSet.has(up) || isGoWord) {
+              if (word !== up) changed++;
+              out += up;
+              i += word.length;
+              if (up === 'REM') { out += body.slice(i); break; }
+              continue;
+            }
+            out += word;
+            i += word.length;
+            continue;
+          }
+          out += ch;
+          i++;
+        }
+        return m[1] + out;
+      }).join('\n');
+
+      textarea.value = converted;
+      updateBasicEditorViews();
+      showCompileStatus(changed ? `Uppercased ${changed} keyword${changed === 1 ? '' : 's'}.` : 'All keywords were already uppercase.', false);
+    }
+
+    function lintBasicCode() {
+      const source = document.getElementById('basic-code').value || '';
+      const rawLines = source.replace(/\r/g, '').split('\n').filter(l => l.trim() !== '');
+      const issues = [];
+      const lineEntries = [];
+      const definedLines = new Set();
+
+      rawLines.forEach((raw, idx) => {
+        const trimmed = raw.trim();
+        const m = trimmed.match(/^(\d+)\s*(.*)$/);
+        if (!m) {
+          issues.push(`Text line ${idx + 1}: doesn't start with a line number — "${trimmed.slice(0, 40)}"`);
+          return;
+        }
+        const num = parseInt(m[1], 10);
+        if (definedLines.has(num)) {
+          issues.push(`Line ${num}: duplicate line number (appears more than once).`);
+        }
+        definedLines.add(num);
+        lineEntries.push({ num, text: stripBasicStringsAndRem(m[2]), rawText: m[2] });
+      });
+
+      for (let i = 1; i < lineEntries.length; i++) {
+        if (lineEntries[i].num <= lineEntries[i - 1].num) {
+          issues.push(`Line ${lineEntries[i].num}: not in ascending order (comes after line ${lineEntries[i - 1].num}).`);
+        }
+      }
+
+      lineEntries.forEach(({ num, rawText }) => {
+        const remIdx = rawText.search(/(^|[^A-Za-z0-9$])REM\b/i);
+        const codePart = remIdx >= 0 && rawText.slice(0, remIdx).split('"').length % 2 === 1 ? rawText.slice(0, remIdx) : rawText;
+        const quoteCount = (codePart.match(/"/g) || []).length;
+        if (quoteCount % 2 !== 0) {
+          issues.push(`Line ${num}: has an odd number of quote marks — check for an unclosed string.`);
+        }
+      });
+
+      lineEntries.forEach(({ num, text }) => {
+        const gotoMatches = text.matchAll(/\b(?:GO\s*TO|GOTO|GO\s*SUB|GOSUB)\s+(\d+)/gi);
+        for (const gm of gotoMatches) {
+          const target = parseInt(gm[1], 10);
+          if (!definedLines.has(target)) {
+            issues.push(`Line ${num}: jumps to line ${target}, which doesn't exist in the program.`);
+          }
+        }
+      });
+
+      let forCount = 0, nextCount = 0;
+      lineEntries.forEach(({ text }) => {
+        forCount += (text.match(/\bFOR\b/gi) || []).length;
+        nextCount += (text.match(/\bNEXT\b/gi) || []).length;
+      });
+      if (forCount !== nextCount) {
+        issues.push(`Found ${forCount} FOR statement(s) but ${nextCount} NEXT statement(s) — these should match.`);
+      }
+
+      if (lineEntries.length === 0) {
+        issues.push('No valid BASIC lines found — every line should start with a line number.');
+      }
+
+      const resultBox = document.getElementById('basic-lint-results');
+      if (!resultBox) return;
+
+      if (issues.length === 0) {
+        resultBox.innerHTML = '<div style="color: #16a34a; font-weight: 600;">No issues found \u2014 looks good!</div>';
+        playUiSuccess();
+      } else {
+        resultBox.innerHTML = issues.map(i => `<div style="margin-bottom: 6px; color: #dc2626;">\u26A0 ${escapeHtml(i)}</div>`).join('');
+        playUiError();
+      }
+    }
+
     function insertScreenLoader() {
       const textarea = document.getElementById('basic-code');
       const current = textarea.value || '';
@@ -1394,11 +2519,226 @@
       updateBasicEditorViews();
     }
 
+
+    function clampByte(v) {
+      return Math.max(0, Math.min(255, Math.round(Number(v) || 0)));
+    }
+
+    function cloneColor(color) {
+      return { r: clampByte(color?.r), g: clampByte(color?.g), b: clampByte(color?.b) };
+    }
+
+    function colorToHex(color) {
+      const c = cloneColor(color);
+      return '#' + [c.r, c.g, c.b].map(v => v.toString(16).toUpperCase().padStart(2, '0')).join('');
+    }
+
+    function applySpectrumGamma(value, mode = 'auto') {
+      const normalized = Math.max(0, Math.min(255, Number(value) || 0));
+      const gammaMode = String(mode || 'auto').toLowerCase();
+      let gamma = 1.0;
+      if (gammaMode === 'soft') gamma = 0.92;
+      else if (gammaMode === 'sharp') gamma = 1.10;
+      if (gamma === 1.0) return normalized;
+      return clampByte(255 * Math.pow(normalized / 255, gamma));
+    }
+
+    function parseHexColorString(hex) {
+      const match = String(hex || '').trim().match(/^#?([0-9a-fA-F]{6})$/);
+      if (!match) return null;
+      const value = match[1];
+      return {
+        r: parseInt(value.slice(0, 2), 16),
+        g: parseInt(value.slice(2, 4), 16),
+        b: parseInt(value.slice(4, 6), 16)
+      };
+    }
+
+    function createGreyscalePalette(count = 16) {
+      const total = Math.max(2, count | 0);
+      const out = [];
+      for (let i = 0; i < total; i++) {
+        const v = total === 1 ? 0 : Math.round((i / (total - 1)) * 255);
+        out.push({ r: v, g: v, b: v });
+      }
+      return out;
+    }
+
+    function parseUserPaletteInput(value) {
+      const parts = String(value || '')
+        .split(/[\n,;]+/)
+        .map(v => v.trim())
+        .filter(Boolean);
+      const colors = [];
+      for (const part of parts) {
+        const parsed = parseHexColorString(part);
+        if (parsed) colors.push(parsed);
+      }
+      return colors;
+    }
+
+    function applySpectrumPaletteBias(palette, bias = 'auto') {
+      const mode = String(bias || 'auto').toLowerCase();
+      const out = palette.map(cloneColor);
+
+      if (mode === 'auto') return out;
+
+      return out.map(color => {
+        let r = color.r;
+        let g = color.g;
+        let b = color.b;
+
+        if (mode === 'warm') {
+          r = clampByte(r * 1.10 + 6);
+          g = clampByte(g * 1.03);
+          b = clampByte(b * 0.92);
+        } else if (mode === 'cool') {
+          r = clampByte(r * 0.92);
+          g = clampByte(g * 1.04);
+          b = clampByte(b * 1.10 + 6);
+        } else if (mode === 'contrast') {
+          const boost = v => v < 128 ? v * 0.82 : 128 + (v - 128) * 1.22;
+          r = clampByte(boost(r));
+          g = clampByte(boost(g));
+          b = clampByte(boost(b));
+        }
+
+        return { r: clampByte(r), g: clampByte(g), b: clampByte(b) };
+      });
+    }
+
+    function getSpectrumizerPaletteBase() {
+      const strategy = String(document.getElementById('param-palette-strategy')?.value || 'auto').toLowerCase();
+      const bias = String(document.getElementById('param-palette-bias')?.value || 'auto').toLowerCase();
+      const userPalette = parseUserPaletteInput(document.getElementById('param-user-palette')?.value || '');
+
+      let palette;
+      if (strategy === 'user' && userPalette.length) {
+        palette = userPalette.map(cloneColor);
+      } else if (strategy === 'greyscale') {
+        palette = createGreyscalePalette(16);
+      } else {
+        palette = SPECTRUM_COLORS.map(cloneColor);
+      }
+      return applySpectrumPaletteBias(palette, bias);
+    }
+
+    function getSpectrumPaletteForCell(isBright, isMonochrome) {
+      const extended = activeVideoMode === 'mode4-256' || activeVideoMode === 'ext-384';
+      let palette = getSpectrumizerPaletteBase();
+
+      if (isMonochrome || currentSpectrumizerMode === 'mono-std') {
+        palette = createGreyscalePalette(extended ? 16 : 8);
+      }
+
+      const requiredCount = extended ? 16 : 8;
+      while (palette.length < requiredCount) {
+        palette.push(cloneColor(SPECTRUM_COLORS[palette.length % SPECTRUM_COLORS.length]));
+      }
+
+      if (extended) {
+        return palette.slice(0, 16);
+      }
+
+      if (palette.length >= 16) {
+        return isBright ? palette.slice(8, 16) : palette.slice(0, 8);
+      }
+
+      return palette.slice(0, 8);
+    }
+
+    function updateSpectrumPalettePreview() {
+      const box = document.getElementById('spectrum-palette-preview');
+      if (!box) return;
+
+      let palette = getSpectrumizerPaletteBase();
+      const strategy = String(document.getElementById('param-palette-strategy')?.value || 'auto').toLowerCase();
+      if (strategy === 'greyscale') {
+        palette = createGreyscalePalette(16);
+      }
+      while (palette.length < 16) {
+        palette.push(cloneColor(SPECTRUM_COLORS[palette.length % SPECTRUM_COLORS.length]));
+      }
+
+      box.innerHTML = palette.slice(0, 16).map(color => {
+        const hex = colorToHex(color);
+        return `<div class="palette-swatch" title="${hex}" style="background:${hex}"></div>`;
+      }).join('');
+    }
+
+    function buildBasicProgramSummary(source) {
+      const lines = getBasicSourceLines().filter(line => /^\d+\s+/.test(line));
+      const vars = extractBasicVariables(source);
+      const hasLoader = /LOAD\s+("[^"]*")?\s*SCREEN\$/i.test(source);
+      const lineCount = lines.length;
+      const charCount = String(source || '').replace(/\r/g, '').length;
+      const tokenEstimate = (source.match(/\b[A-Z][A-Z0-9$]*\b/gi) || []).length;
+      const tapeFormat = getSelectedTapeFormat('basic-tape-format').toUpperCase();
+      const autostart = document.getElementById('basic-autostart')?.value || '10';
+      const workflowMode = document.getElementById('basic-workflow-mode')?.value || 'loader';
+      const density = document.getElementById('basic-density')?.value || 'standard';
+
+      const workflowLabel = {
+        loader: 'Loader',
+        demo: 'Demo',
+        utility: 'Utility',
+        listing: 'Listing'
+      }[workflowMode] || workflowMode;
+
+      const densityLabel = {
+        compact: 'Compact',
+        standard: 'Standard',
+        extended: 'Extended'
+      }[density] || density;
+
+      return [
+        `Lines: ${lineCount}`,
+        `Variables: ${vars.length ? vars.join(', ') : 'None'}`,
+        `SCREEN$ loader: ${hasLoader ? 'Present' : 'Not found'}`,
+        `Source chars: ${charCount}`,
+        `Token estimate: ${tokenEstimate}`,
+        `Autostart line: ${autostart}`,
+        `Tape format: ${tapeFormat}`,
+        `Workflow mode: ${workflowLabel}`,
+        `Line density: ${densityLabel}`
+      ].join('\n');
+    }
+
+    function buildAsmProgramSummary(source, assembled, origin, runAddr) {
+      const symbolCount = Object.keys(assembled?.symbols || {}).length;
+      const byteCount = assembled?.bytes?.length || 0;
+      const lineCount = String(source || '').replace(/\r/g, '').split(/\n/).filter(Boolean).length;
+      const autoOrg = !!(document.getElementById('asm-auto-org') && document.getElementById('asm-auto-org').checked);
+      const tapeFormat = getSelectedTapeFormat('basic-tape-format').toUpperCase();
+      const listingMode = document.getElementById('asm-listing-mode')?.value || 'full';
+      const sortSymbols = !!(document.getElementById('asm-sort-symbols') && document.getElementById('asm-sort-symbols').checked);
+
+      const listingLabel = {
+        compact: 'Compact',
+        full: 'Full',
+        'memory-map': 'Memory Map'
+      }[listingMode] || listingMode;
+
+      return [
+        `Source lines: ${lineCount}`,
+        `Symbols: ${symbolCount}`,
+        `Machine bytes: ${byteCount}`,
+        `Origin: ${origin} ($${origin.toString(16).toUpperCase().padStart(4, '0')})`,
+        `Run address: ${runAddr} ($${runAddr.toString(16).toUpperCase().padStart(4, '0')})`,
+        `Auto-detect ORG: ${autoOrg ? 'On' : 'Off'}`,
+        `Tape format: ${tapeFormat}`,
+        `Listing mode: ${listingLabel}`,
+        `Sort labels: ${sortSymbols ? 'On' : 'Off'}`
+      ].join('\n');
+    }
+
+
     // ----------------------------------------------------
     // 2. VIDEO RENDERING & BUFFER CONVERSION
     // ----------------------------------------------------
     function clearSpectrumDisplay() {
       spectrumScreenBytes.fill(0);
+      cellDetailLoss.fill(0);
       if (activeVideoMode === 'std-256') {
         for (let i = 0; i < 768; i++) {
           spectrumScreenBytes[6144 + i] = 56; // Grey paper, black ink
@@ -1499,6 +2839,21 @@
         }
       }
       ctx.putImageData(imgData, 0, 0);
+
+      if (activeVideoMode === 'std-256' && document.getElementById('param-clash-heatmap')?.checked) {
+        renderClashHeatmapOverlay();
+      }
+    }
+
+    function renderClashHeatmapOverlay() {
+      for (let cellY = 0; cellY < 24; cellY++) {
+        for (let cellX = 0; cellX < 32; cellX++) {
+          const loss = cellDetailLoss[(cellY * 32) + cellX];
+          if (loss <= 0) continue;
+          ctx.fillStyle = `rgba(255, 0, 64, ${Math.min(0.75, loss * 0.9)})`;
+          ctx.fillRect(cellX * 8, cellY * 8, 8, 8);
+        }
+      }
     }
 
     function renderLineProgress(loadedBytes) {
@@ -1558,11 +2913,19 @@
       }, 'basic');
     }
 
+    function getImageChunkSize(controlSet = currentImageControlSet) {
+      const chunkId = controlSet === 'basic' ? 'basic-chunk' : 'param-chunk';
+      const raw = String(document.getElementById(chunkId)?.value || '1').toLowerCase();
+      if (raw === 'lossless') return 1;
+      const parsed = parseInt(raw, 10);
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+    }
+
     function applyImageScaling(controlSet = currentImageControlSet) {
       if (!globalRawImage) return;
 
       const fitMode = document.getElementById(controlSet === 'basic' ? 'basic-fit-mode' : 'param-fit').value;
-      const chunk = parseInt(document.getElementById('param-chunk').value);
+      const chunk = getImageChunkSize(controlSet);
       const renderW = canvasWidth / chunk;
       const renderH = canvasHeight / chunk;
 
@@ -1624,10 +2987,11 @@
       const brightnessVal = parseInt(document.getElementById('param-brightness').value);
       const contrastVal = parseInt(document.getElementById('param-contrast').value);
       const saturationVal = parseInt(document.getElementById('param-saturation').value) / 100;
+      const edgeBoost = !!document.getElementById('param-edge-boost')?.checked;
 
       const workingData = new Uint8ClampedArray(currentSourceImgData.data);
       const bFactor = (brightnessVal / 100) * 255;
-      const cFactor = (contrastVal + 100) / 100;
+      const cFactor = (contrastVal + 100) / 100 + (edgeBoost ? 0.12 : 0);
 
       for (let i = 0; i < workingData.length; i += 4) {
         let r = workingData[i];
@@ -1642,19 +3006,28 @@
         workingData[i] = Math.min(255, Math.max(0, lum + (r - lum) * saturationVal));
         workingData[i + 1] = Math.min(255, Math.max(0, lum + (g - lum) * saturationVal));
         workingData[i + 2] = Math.min(255, Math.max(0, lum + (b - lum) * saturationVal));
+
+        if (sourceInverted) {
+          workingData[i] = 255 - workingData[i];
+          workingData[i + 1] = 255 - workingData[i + 1];
+          workingData[i + 2] = 255 - workingData[i + 2];
+        }
       }
 
+      if (flipHorizontal || flipVertical) flipPixelBuffer(workingData, canvasWidth, canvasHeight, flipHorizontal, flipVertical);
+
       if (activeVideoMode === 'std-256') {
-        for (let cellY = 0; cellY < 24; cellY++) {
-          for (let cellX = 0; cellX < 32; cellX++) {
-            process8x8Cell(workingData, cellX, cellY, ditherEnabled, isMonochrome);
-          }
+        cellDetailLoss.fill(0);
+        if (ditherVersion === 1) {
+          ditherStdImageConfined(workingData, ditherEnabled, isMonochrome);
+        } else {
+          ditherStdImageTwoPass(workingData, ditherEnabled, isMonochrome);
         }
       } else if (activeVideoMode === 'timex-hicolor') {
-        for (let y = 0; y < 192; y++) {
-          for (let cellX = 0; cellX < 32; cellX++) {
-            process8x1LineCell(workingData, cellX, y, ditherEnabled, isMonochrome);
-          }
+        if (ditherVersion === 1) {
+          ditherTimexHiColorConfined(workingData, ditherEnabled, isMonochrome);
+        } else {
+          ditherTimexHiColorTwoPass(workingData, ditherEnabled, isMonochrome);
         }
       } else if (activeVideoMode === 'mode4-256' || activeVideoMode === 'ext-384') {
         processBitmap16ColorMode(workingData, ditherEnabled, isMonochrome);
@@ -1668,7 +3041,7 @@
       return 2 * dr * dr + 4 * dg * dg + 3 * db * db;
     }
 
-    function process8x8Cell(pixelArray, cellX, cellY, dither, isMonochrome) {
+    function computeCellPalette(pixelArray, cellX, cellY, isMonochrome, clashReduction) {
       const pixels = [];
       let totalLuminosity = 0;
 
@@ -1678,25 +3051,26 @@
           const absX = cellX * 8 + x;
           const idx = (absY * 256 + absX) * 4;
           const r = pixelArray[idx], g = pixelArray[idx + 1], b = pixelArray[idx + 2];
-          pixels.push({ r, g, b, idx, localX: x, localY: y });
+          pixels.push({ r, g, b });
           totalLuminosity += (0.299 * r + 0.587 * g + 0.114 * b);
         }
       }
 
       const avgLum = totalLuminosity / 64;
       const isBright = avgLum > 90;
-      let paperIdx, inkIdx;
+      let paperIdx = 0, inkIdx = 7;
 
+      const palette = getSpectrumPaletteForCell(isBright, isMonochrome);
       if (isMonochrome) {
-        paperIdx = 7; inkIdx = 0;
+        paperIdx = 7;
+        inkIdx = 0;
         spectrumScreenBytes[6144 + (cellY * 32) + cellX] = 0x40 | (7 << 3) | 0;
-      } else {
-        const paletteOffset = isBright ? 8 : 0;
-        const colorCounts = new Array(8).fill(0);
+      } else if (clashReduction) {
+        const colorCounts = new Array(Math.min(8, palette.length)).fill(0);
         pixels.forEach(p => {
           let bestDist = Infinity, bestIdx = 0;
-          for (let i = 0; i < 8; i++) {
-            const sc = SPECTRUM_COLORS[paletteOffset + i];
+          for (let i = 0; i < colorCounts.length; i++) {
+            const sc = palette[i];
             const d = colorDistanceFast(p.r, p.g, p.b, sc.r, sc.g, sc.b);
             if (d < bestDist) { bestDist = d; bestIdx = i; }
           }
@@ -1704,47 +3078,90 @@
         });
 
         let maxCount = -1;
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < colorCounts.length; i++) {
           if (colorCounts[i] > maxCount) { maxCount = colorCounts[i]; paperIdx = i; }
         }
 
         let nextMaxCount = -1; inkIdx = -1;
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < colorCounts.length; i++) {
           if (i === paperIdx) continue;
           if (colorCounts[i] > nextMaxCount) { nextMaxCount = colorCounts[i]; inkIdx = i; }
         }
 
-        if (inkIdx === -1) inkIdx = (paperIdx === 0) ? 7 : 0;
+        if (inkIdx === -1) inkIdx = (paperIdx === 0) ? Math.min(7, palette.length - 1) : 0;
+        spectrumScreenBytes[6144 + (cellY * 32) + cellX] = (isBright ? 0x40 : 0x00) | (paperIdx << 3) | inkIdx;
+      } else {
+        paperIdx = isBright ? 7 : 0;
+        inkIdx = isBright ? 0 : 7;
         spectrumScreenBytes[6144 + (cellY * 32) + cellX] = (isBright ? 0x40 : 0x00) | (paperIdx << 3) | inkIdx;
       }
 
-      const paletteOffset = (isMonochrome || isBright) ? 8 : 0;
-      const cPaper = SPECTRUM_COLORS[paletteOffset + paperIdx];
-      const cInk = SPECTRUM_COLORS[paletteOffset + inkIdx];
+      const cPaper = palette[paperIdx] || cloneColor(SPECTRUM_COLORS[paperIdx]);
+      const cInk = palette[inkIdx] || cloneColor(SPECTRUM_COLORS[inkIdx]);
+      return { cPaper, cInk };
+    }
 
-      const localPixelsGrid = Array.from({ length: 8 }, () => new Array(8));
-      pixels.forEach(p => localPixelsGrid[p.localY][p.localX] = p);
+    // Two-pass dithering for the attribute-cell-constrained 256x192 mode.
+    //
+    // Pass 1 chooses each 8x8 cell's PAPER/INK colours from the pristine, undiffused
+    // source pixels only. Pass 2 then diffuses Floyd-Steinberg error continuously across
+    // the WHOLE image in standard raster order (not reset at every cell edge), using each
+    // cell's already-fixed palette from pass 1 for every pixel's ink/paper decision.
+    //
+    // This avoids two failure modes we saw when the two concerns weren't separated:
+    //  - Resetting/confining diffusion at every cell boundary makes every cell start from
+    //    identical conditions when neighbouring cells have similar source colours (e.g. a
+    //    smooth gradient sky), producing a visibly repeating dot pattern tiled every 8px —
+    //    a grid artifact.
+    //  - Letting diffused error feed back into the CELL PALETTE selection itself (by
+    //    picking each cell's colours from the same buffer dithering had already written
+    //    into) lets a strong colour transition contaminate a neighbouring cell's own colour
+    //    choice, causing bright colours to bleed into what should be a flat, unrelated area.
+    function ditherStdImageTwoPass(pixelArray, dither, isMonochrome) {
+      const clashReduction = !!(document.getElementById('param-clash-reduction')?.checked);
 
-      for (let y = 0; y < 8; y++) {
-        const absY = cellY * 8 + y;
-        let lineByte = 0;
+      const cellPalettes = new Array(768);
+      for (let cellY = 0; cellY < 24; cellY++) {
+        for (let cellX = 0; cellX < 32; cellX++) {
+          cellPalettes[(cellY * 32) + cellX] = computeCellPalette(pixelArray, cellX, cellY, isMonochrome, clashReduction);
+        }
+      }
 
-        for (let x = 0; x < 8; x++) {
-          const absX = cellX * 8 + x;
-          const p = localPixelsGrid[y][x];
+      const badThresholds = new Array(768);
+      for (let i = 0; i < 768; i++) {
+        const { cPaper, cInk } = cellPalettes[i];
+        const cellColorDist = colorDistanceFast(cPaper.r, cPaper.g, cPaper.b, cInk.r, cInk.g, cInk.b);
+        badThresholds[i] = Math.max(1500, cellColorDist * 0.12);
+      }
 
-          const dPaper = colorDistanceFast(p.r, p.g, p.b, cPaper.r, cPaper.g, cPaper.b);
-          const dInk = colorDistanceFast(p.r, p.g, p.b, cInk.r, cInk.g, cInk.b);
+      const badPixelCounts = new Array(768).fill(0);
+
+      for (let absY = 0; absY < 192; absY++) {
+        const cellY = Math.floor(absY / 8);
+        const lineBytes = new Array(32).fill(0);
+
+        for (let absX = 0; absX < 256; absX++) {
+          const cellX = Math.floor(absX / 8);
+          const cellIdx = (cellY * 32) + cellX;
+          const { cPaper, cInk } = cellPalettes[cellIdx];
+
+          const liveIdx = (absY * 256 + absX) * 4;
+          const pr = pixelArray[liveIdx], pg = pixelArray[liveIdx + 1], pb = pixelArray[liveIdx + 2];
+
+          const dPaper = colorDistanceFast(pr, pg, pb, cPaper.r, cPaper.g, cPaper.b);
+          const dInk = colorDistanceFast(pr, pg, pb, cInk.r, cInk.g, cInk.b);
+
+          if (Math.min(dPaper, dInk) > badThresholds[cellIdx]) badPixelCounts[cellIdx]++;
 
           const isInk = dInk < dPaper;
           const finalColor = isInk ? cInk : cPaper;
 
-          if (isInk) lineByte |= (0x80 >> x);
+          if (isInk) lineBytes[cellX] |= (0x80 >> (absX % 8));
 
           if (dither) {
-            const errR = p.r - finalColor.r;
-            const errG = p.g - finalColor.g;
-            const errB = p.b - finalColor.b;
+            const errR = pr - finalColor.r;
+            const errG = pg - finalColor.g;
+            const errB = pb - finalColor.b;
 
             distributeError(pixelArray, absX + 1, absY,     errR, errG, errB, 7 / 16);
             distributeError(pixelArray, absX - 1, absY + 1, errR, errG, errB, 3 / 16);
@@ -1757,48 +3174,145 @@
         const line = absY % 8;
         const offset = Math.floor((absY % 64) / 8);
         const pixelAddressOffset = (third * 2048) + (line * 256) + (offset * 32);
-        
-        spectrumScreenBytes[pixelAddressOffset + cellX] = lineByte;
+        for (let cellX = 0; cellX < 32; cellX++) {
+          spectrumScreenBytes[pixelAddressOffset + cellX] = lineBytes[cellX];
+        }
+      }
+
+      for (let i = 0; i < 768; i++) cellDetailLoss[i] = badPixelCounts[i] / 64;
+    }
+
+    // "Version 1" dithering: each 8x8 cell's error diffusion is confined to that cell's
+    // own pixels and never crosses into a neighbouring cell. This gives a tighter, more
+    // uniform per-cell texture — no risk of one cell's colour choice leaking into another —
+    // at the cost of nearby cells with similar source colour sometimes repeating the same
+    // internal dot pattern (visible as a faint regular texture on smooth gradients).
+    // Classic 8x8 Bayer ordered-dithering threshold matrix (values 0-63).
+    const BAYER_MATRIX_8X8 = [
+      [0, 32, 8, 40, 2, 34, 10, 42],
+      [48, 16, 56, 24, 50, 18, 58, 26],
+      [12, 44, 4, 36, 14, 46, 6, 38],
+      [60, 28, 52, 20, 62, 30, 54, 22],
+      [3, 35, 11, 43, 1, 33, 9, 41],
+      [51, 19, 59, 27, 49, 17, 57, 25],
+      [15, 47, 7, 39, 13, 45, 5, 37],
+      [63, 31, 55, 23, 61, 29, 53, 21]
+    ];
+
+    // "Version 1" dithering: ORDERED (Bayer matrix) dithering, a fundamentally different
+    // technique from Floyd-Steinberg error diffusion. Instead of pushing quantisation error
+    // forward into neighbouring pixels, every pixel is compared against a fixed 8x8 threshold
+    // matrix tiled across the image. This produces the classic regular crosshatch/grid
+    // texture ordered dithering is known for, rather than error diffusion's organic scatter —
+    // a reliably, visibly distinct style from Version 2 on every image, not just gradients.
+    function ditherStdImageConfined(pixelArray, dither, isMonochrome) {
+      const clashReduction = !!(document.getElementById('param-clash-reduction')?.checked);
+
+      const cellPalettes = new Array(768);
+      for (let cellY = 0; cellY < 24; cellY++) {
+        for (let cellX = 0; cellX < 32; cellX++) {
+          cellPalettes[(cellY * 32) + cellX] = computeCellPalette(pixelArray, cellX, cellY, isMonochrome, clashReduction);
+        }
+      }
+
+      for (let cellY = 0; cellY < 24; cellY++) {
+        for (let cellX = 0; cellX < 32; cellX++) {
+          const cellIdx = (cellY * 32) + cellX;
+          const { cPaper, cInk } = cellPalettes[cellIdx];
+
+          const paperLum = 0.299 * cPaper.r + 0.587 * cPaper.g + 0.114 * cPaper.b;
+          const inkLum = 0.299 * cInk.r + 0.587 * cInk.g + 0.114 * cInk.b;
+          const lumSpan = inkLum - paperLum;
+
+          let badPixelCount = 0;
+          const cellColorDist = colorDistanceFast(cPaper.r, cPaper.g, cPaper.b, cInk.r, cInk.g, cInk.b);
+          const badMatchThreshold = Math.max(1500, cellColorDist * 0.12);
+
+          for (let y = 0; y < 8; y++) {
+            const absY = cellY * 8 + y;
+            let lineByte = 0;
+
+            for (let x = 0; x < 8; x++) {
+              const absX = cellX * 8 + x;
+              const idx = (absY * 256 + absX) * 4;
+              const pr = pixelArray[idx], pg = pixelArray[idx + 1], pb = pixelArray[idx + 2];
+
+              const dPaper = colorDistanceFast(pr, pg, pb, cPaper.r, cPaper.g, cPaper.b);
+              const dInk = colorDistanceFast(pr, pg, pb, cInk.r, cInk.g, cInk.b);
+              if (Math.min(dPaper, dInk) > badMatchThreshold) badPixelCount++;
+
+              let isInk;
+              if (!dither) {
+                isInk = dInk < dPaper;
+              } else if (Math.abs(lumSpan) < 1) {
+                // Paper and ink are nearly the same brightness (e.g. two similarly-dark
+                // colours) — ordered dithering has no meaningful brightness ramp to work
+                // with here, so fall back to a plain nearest-colour match.
+                isInk = dInk < dPaper;
+              } else {
+                const pixelLum = 0.299 * pr + 0.587 * pg + 0.114 * pb;
+                const t = Math.min(1, Math.max(0, (pixelLum - paperLum) / lumSpan));
+                const bayerThreshold = (BAYER_MATRIX_8X8[y][x] + 0.5) / 64;
+                isInk = t > bayerThreshold;
+              }
+
+              if (isInk) lineByte |= (0x80 >> x);
+            }
+
+            const third = Math.floor(absY / 64);
+            const line = absY % 8;
+            const offset = Math.floor((absY % 64) / 8);
+            const pixelAddressOffset = (third * 2048) + (line * 256) + (offset * 32);
+            spectrumScreenBytes[pixelAddressOffset + cellX] = lineByte;
+          }
+
+          cellDetailLoss[cellIdx] = badPixelCount / 64;
+        }
       }
     }
 
-    function process8x1LineCell(pixelArray, cellX, y, dither, isMonochrome) {
+    function computeLineCellPalette(pixelArray, cellX, y, isMonochrome, clashReduction) {
       let totalLum = 0;
       const linePixels = [];
       for (let x = 0; x < 8; x++) {
         const absX = cellX * 8 + x;
         const idx = (y * 256 + absX) * 4;
         const r = pixelArray[idx], g = pixelArray[idx + 1], b = pixelArray[idx + 2];
-        linePixels.push({ r, g, b, absX });
+        linePixels.push({ r, g, b });
         totalLum += (0.299 * r + 0.587 * g + 0.114 * b);
       }
 
       const isBright = (totalLum / 8) > 90;
-      const paletteOffset = isBright ? 8 : 0;
+      const palette = getSpectrumPaletteForCell(isBright, isMonochrome);
       let paperIdx = 0, inkIdx = 7;
 
       if (!isMonochrome) {
-        let bestCount = -1;
-        const counts = new Array(8).fill(0);
-        linePixels.forEach(p => {
-          let minD = Infinity, bestI = 0;
-          for (let i = 0; i < 8; i++) {
-            const sc = SPECTRUM_COLORS[paletteOffset + i];
-            const d = colorDistanceFast(p.r, p.g, p.b, sc.r, sc.g, sc.b);
-            if (d < minD) { minD = d; bestI = i; }
-          }
-          counts[bestI]++;
-        });
+        if (clashReduction) {
+          let bestCount = -1;
+          const counts = new Array(Math.min(8, palette.length)).fill(0);
+          linePixels.forEach(p => {
+            let minD = Infinity, bestI = 0;
+            for (let i = 0; i < counts.length; i++) {
+              const sc = palette[i];
+              const d = colorDistanceFast(p.r, p.g, p.b, sc.r, sc.g, sc.b);
+              if (d < minD) { minD = d; bestI = i; }
+            }
+            counts[bestI]++;
+          });
 
-        for (let i = 0; i < 8; i++) {
-          if (counts[i] > bestCount) { bestCount = counts[i]; paperIdx = i; }
+          for (let i = 0; i < counts.length; i++) {
+            if (counts[i] > bestCount) { bestCount = counts[i]; paperIdx = i; }
+          }
+          let nextBest = -1;
+          for (let i = 0; i < counts.length; i++) {
+            if (i === paperIdx) continue;
+            if (counts[i] > nextBest) { nextBest = counts[i]; inkIdx = i; }
+          }
+          if (inkIdx === -1) inkIdx = (paperIdx === 0) ? Math.min(7, palette.length - 1) : 0;
+        } else {
+          paperIdx = isBright ? 7 : 0;
+          inkIdx = isBright ? 0 : 7;
         }
-        let nextBest = -1;
-        for (let i = 0; i < 8; i++) {
-          if (i === paperIdx) continue;
-          if (counts[i] > nextBest) { nextBest = counts[i]; inkIdx = i; }
-        }
-        if (inkIdx === -1) inkIdx = (paperIdx === 0) ? 7 : 0;
       }
 
       const third = Math.floor(y / 64);
@@ -1808,32 +3322,118 @@
 
       spectrumScreenBytes[6144 + addrOffset + cellX] = (isBright ? 0x40 : 0x00) | (paperIdx << 3) | inkIdx;
 
-      const cPaper = SPECTRUM_COLORS[paletteOffset + paperIdx];
-      const cInk = SPECTRUM_COLORS[paletteOffset + inkIdx];
+      const cPaper = palette[paperIdx] || cloneColor(SPECTRUM_COLORS[paperIdx]);
+      const cInk = palette[inkIdx] || cloneColor(SPECTRUM_COLORS[inkIdx]);
+      return { cPaper, cInk };
+    }
 
-      let lineByte = 0;
-      for (let x = 0; x < 8; x++) {
-        const p = linePixels[x];
-        const dPaper = colorDistanceFast(p.r, p.g, p.b, cPaper.r, cPaper.g, cPaper.b);
-        const dInk = colorDistanceFast(p.r, p.g, p.b, cInk.r, cInk.g, cInk.b);
+    // Same two-pass approach as ditherStdImageTwoPass, adapted for 8x1 (Timex Hi-Colour)
+    // cells: palettes come from pristine pixels; dithering then runs as one continuous
+    // horizontal raster scan per row so error isn't reset at every 8px cell edge.
+    function ditherTimexHiColorTwoPass(pixelArray, dither, isMonochrome) {
+      const clashReduction = !!(document.getElementById('param-clash-reduction')?.checked);
 
-        const isInk = dInk < dPaper;
-        const finalColor = isInk ? cInk : cPaper;
-        if (isInk) lineByte |= (0x80 >> x);
+      for (let y = 0; y < 192; y++) {
+        const rowPalettes = new Array(32);
+        for (let cellX = 0; cellX < 32; cellX++) {
+          rowPalettes[cellX] = computeLineCellPalette(pixelArray, cellX, y, isMonochrome, clashReduction);
+        }
 
-        if (dither) {
-          const errR = p.r - finalColor.r;
-          const errG = p.g - finalColor.g;
-          const errB = p.b - finalColor.b;
-          distributeError(pixelArray, p.absX + 1, y, errR, errG, errB, 7 / 16);
+        const third = Math.floor(y / 64);
+        const line = y % 8;
+        const offset = Math.floor((y % 64) / 8);
+        const addrOffset = (third * 2048) + (line * 256) + (offset * 32);
+
+        const lineBytes = new Array(32).fill(0);
+
+        for (let absX = 0; absX < 256; absX++) {
+          const cellX = Math.floor(absX / 8);
+          const { cPaper, cInk } = rowPalettes[cellX];
+
+          const liveIdx = (y * 256 + absX) * 4;
+          const pr = pixelArray[liveIdx], pg = pixelArray[liveIdx + 1], pb = pixelArray[liveIdx + 2];
+
+          const dPaper = colorDistanceFast(pr, pg, pb, cPaper.r, cPaper.g, cPaper.b);
+          const dInk = colorDistanceFast(pr, pg, pb, cInk.r, cInk.g, cInk.b);
+
+          const isInk = dInk < dPaper;
+          const finalColor = isInk ? cInk : cPaper;
+          if (isInk) lineBytes[cellX] |= (0x80 >> (absX % 8));
+
+          if (dither) {
+            const errR = pr - finalColor.r;
+            const errG = pg - finalColor.g;
+            const errB = pb - finalColor.b;
+            distributeError(pixelArray, absX + 1, y, errR, errG, errB, 7 / 16);
+          }
+        }
+
+        for (let cellX = 0; cellX < 32; cellX++) {
+          spectrumScreenBytes[addrOffset + cellX] = lineBytes[cellX];
         }
       }
-      spectrumScreenBytes[addrOffset + cellX] = lineByte;
+    }
+
+
+    // "Version 1" for Timex Hi-Colour: same confinement idea as ditherStdImageConfined,
+    // scoped to each 8x1 line-cell (horizontal-only diffusion never leaves its own cell).
+    // "Version 1" ordered dithering for Timex Hi-Colour: same Bayer-matrix approach as
+    // ditherStdImageConfined, using the true (x,y) position so the 2D crosshatch pattern
+    // stays consistent even though each cell here is only one scanline tall.
+    function ditherTimexHiColorConfined(pixelArray, dither, isMonochrome) {
+      const clashReduction = !!(document.getElementById('param-clash-reduction')?.checked);
+
+      for (let y = 0; y < 192; y++) {
+        for (let cellX = 0; cellX < 32; cellX++) {
+          const { cPaper, cInk } = computeLineCellPalette(pixelArray, cellX, y, isMonochrome, clashReduction);
+
+          const third = Math.floor(y / 64);
+          const line = y % 8;
+          const offset = Math.floor((y % 64) / 8);
+          const addrOffset = (third * 2048) + (line * 256) + (offset * 32);
+
+          const paperLum = 0.299 * cPaper.r + 0.587 * cPaper.g + 0.114 * cPaper.b;
+          const inkLum = 0.299 * cInk.r + 0.587 * cInk.g + 0.114 * cInk.b;
+          const lumSpan = inkLum - paperLum;
+
+          let lineByte = 0;
+
+          for (let x = 0; x < 8; x++) {
+            const absX = cellX * 8 + x;
+            const idx = (y * 256 + absX) * 4;
+            const pr = pixelArray[idx], pg = pixelArray[idx + 1], pb = pixelArray[idx + 2];
+
+            const dPaper = colorDistanceFast(pr, pg, pb, cPaper.r, cPaper.g, cPaper.b);
+            const dInk = colorDistanceFast(pr, pg, pb, cInk.r, cInk.g, cInk.b);
+
+            let isInk;
+            if (!dither || Math.abs(lumSpan) < 1) {
+              isInk = dInk < dPaper;
+            } else {
+              const pixelLum = 0.299 * pr + 0.587 * pg + 0.114 * pb;
+              const t = Math.min(1, Math.max(0, (pixelLum - paperLum) / lumSpan));
+              const bayerThreshold = (BAYER_MATRIX_8X8[y % 8][x] + 0.5) / 64;
+              isInk = t > bayerThreshold;
+            }
+
+            if (isInk) lineByte |= (0x80 >> x);
+          }
+          spectrumScreenBytes[addrOffset + cellX] = lineByte;
+        }
+      }
     }
 
     function processBitmap16ColorMode(pixelArray, dither, isMonochrome) {
       const w = canvasWidth;
       const h = canvasHeight;
+      let palette = getSpectrumizerPaletteBase();
+      if (isMonochrome || currentSpectrumizerMode === 'mono-std') {
+        palette = createGreyscalePalette(16);
+      }
+      while (palette.length < 16) {
+        palette.push(cloneColor(SPECTRUM_COLORS[palette.length % SPECTRUM_COLORS.length]));
+      }
+      palette = palette.slice(0, 16);
 
       for (let y = 0; y < h; y++) {
         for (let x = 0; x < w; x++) {
@@ -1843,7 +3443,7 @@
           let bestIdx = 0, bestDist = Infinity;
           for (let i = 0; i < 16; i++) {
             if (isMonochrome && i !== 0 && i !== 15) continue;
-            const sc = SPECTRUM_COLORS[i];
+            const sc = palette[i];
             const d = colorDistanceFast(r, g, b, sc.r, sc.g, sc.b);
             if (d < bestDist) { bestDist = d; bestIdx = i; }
           }
@@ -1857,7 +3457,7 @@
           }
 
           if (dither) {
-            const finalColor = SPECTRUM_COLORS[bestIdx];
+            const finalColor = palette[bestIdx];
             const errR = r - finalColor.r;
             const errG = g - finalColor.g;
             const errB = b - finalColor.b;
@@ -1955,9 +3555,77 @@
       statusBox.textContent = message;
       statusBox.className = 'compile-status-box ' + (isError ? 'compile-status-error' : 'compile-status-success');
       statusBox.style.display = 'block';
+      if (isError) playUiError(); else playUiSuccess();
       setTimeout(() => {
         statusBox.style.display = 'none';
       }, 5000);
+    }
+
+    let extraBasicHeaders = [];
+    let extraBasicHeaderNextId = 1;
+
+    function addExtraBasicHeader(cloneFrom) {
+      const entry = {
+        id: extraBasicHeaderNextId++,
+        name: cloneFrom ? cloneFrom.name : `DATA${extraBasicHeaders.length + 1}`,
+        text: cloneFrom ? cloneFrom.text : ''
+      };
+      extraBasicHeaders.push(entry);
+      renderExtraBasicHeaders();
+    }
+
+    function removeExtraBasicHeader(id) {
+      extraBasicHeaders = extraBasicHeaders.filter(e => e.id !== id);
+      renderExtraBasicHeaders();
+    }
+
+    function duplicateExtraBasicHeader(id) {
+      const source = extraBasicHeaders.find(e => e.id === id);
+      if (source) addExtraBasicHeader(source);
+    }
+
+    function updateExtraBasicHeaderField(id, field, value) {
+      const entry = extraBasicHeaders.find(e => e.id === id);
+      if (entry) entry[field] = value;
+    }
+
+    function renderExtraBasicHeaders() {
+      const list = document.getElementById('basic-extra-headers-list');
+      if (!list) return;
+
+      if (!extraBasicHeaders.length) {
+        list.innerHTML = '<div class="small-note" style="margin-top:0;">No extra headers yet. Click "Add New BASIC Header" below.</div>';
+        return;
+      }
+
+      list.innerHTML = extraBasicHeaders.map(entry => `
+        <div class="extra-header-card">
+          <div class="control-group">
+            <label>Header Name (Max 10 Chars)</label>
+            <input type="text" maxlength="10" value="${escapeHtml(entry.name)}"
+              oninput="updateExtraBasicHeaderField(${entry.id}, 'name', this.value)">
+          </div>
+          <div class="control-group">
+            <label>Data (Text / BASIC Data)</label>
+            <textarea spellcheck="false" placeholder="Type the data this block should carry..."
+              oninput="updateExtraBasicHeaderField(${entry.id}, 'text', this.value)">${escapeHtml(entry.text)}</textarea>
+          </div>
+          <div class="extra-header-row-btns">
+            <button type="button" onclick="duplicateExtraBasicHeader(${entry.id})">Duplicate</button>
+            <button type="button" class="danger" onclick="removeExtraBasicHeader(${entry.id})">Remove</button>
+          </div>
+        </div>`).join('');
+    }
+
+    function getExtraBasicHeaderEntries() {
+      return extraBasicHeaders;
+    }
+
+    function textToByteArray(text) {
+      const out = [];
+      const s = text || '';
+      for (let i = 0; i < s.length; i++) out.push(s.charCodeAt(i) & 0xFF);
+      return out;
     }
 
     function compileBasicToTap() {
@@ -2055,7 +3723,7 @@
         if (nameMatch && nameMatch[1].trim() !== "") {
           imgName = nameMatch[1].trim();
         } else {
-          imgName = document.getElementById('tap-filename').value.trim() || "";
+          imgName = document.getElementById('tap-filename').value.trim() || filename.trim() || 'SCREEN';
         }
         imgName = imgName.padEnd(10, ' ').substring(0, 10).toUpperCase();
 
@@ -2079,30 +3747,286 @@
         finalTapFiles.push(imgHeader, imgData);
       }
 
-      finalTapFiles.push(progHeader, progData);
+      const blockPurposes = ['program'];
+      if (wantsImage) blockPurposes.push('loading-screen');
 
-      let totalSize = finalTapFiles.reduce((acc, val) => acc + val.length, 0);
-      let combined = new Uint8Array(totalSize);
-      let offset = 0;
-      for (let arr of finalTapFiles) {
-        combined.set(arr, offset);
-        offset += arr.length;
+      finalTapFiles.unshift(progHeader, progData);
+
+      for (const extra of getExtraBasicHeaderEntries()) {
+        const extraBytes = textToByteArray(extra.text);
+        if (!extraBytes.length) continue;
+
+        let extraName = (extra.name || '').trim();
+        if (!extraName) extraName = filename.trim() || 'DATA';
+        extraName = extraName.padEnd(10, ' ').substring(0, 10).toUpperCase();
+
+        const extraHeader = createTapHeaderBlock(3, extraName, extraBytes.length, 0x8000, extraBytes.length);
+        const extraData = createTapDataBlock(0xFF, extraBytes);
+        finalTapFiles.push(extraHeader, extraData);
+        blockPurposes.push('basic-data');
       }
+
+      let combined = buildTapArchiveBytes(finalTapFiles);
 
       const tapeFormat = getSelectedTapeFormat('basic-tape-format');
       parseTapBytes(combined);
+      for (let i = 0; i < blockPurposes.length; i++) {
+        if (activeTapeBlocks[i * 2]) activeTapeBlocks[i * 2].purpose = blockPurposes[i];
+        if (activeTapeBlocks[i * 2 + 1]) activeTapeBlocks[i * 2 + 1].purpose = blockPurposes[i];
+      }
+      renderTapeBlocksList();
       downloadTapeBytes(combined, filename.trim(), tapeFormat);
 
       showCompileStatus(`Compiled successfully! Autostart at line ${autostart}. Output format: ${tapeFormat.toUpperCase()}.`, false);
     }
 
 
-    function showAsmStatus(message, isError) {
+    /* ================= v1.5.2.9: Font styles ================= */
+    const FONT_STYLES = { 'sf-display': '--font-sf-display', 'sf-text': '--font-sf-text', 'sf-rounded': '--font-sf-rounded', 'ny-serif': '--font-ny-serif', 'sf-mono': '--font-sf-mono', 'system': '--font-system' };
+    let fontScalePct = 100;
+    function setFontStyle(key, silent) {
+      if (!FONT_STYLES[key]) key = 'sf-display';
+      document.documentElement.style.setProperty('--app-font', `var(${FONT_STYLES[key]})`);
+      const sel = document.getElementById('font-style-select');
+      if (sel) sel.value = key;
+      try { localStorage.setItem('zx-font-style', key); } catch (e) { /* ignore */ }
+      if (!silent && typeof playUiClick === 'function') { try { playUiClick(); } catch (e) { /* ignore */ } }
+    }
+    function adjustFontScale(delta) {
+      fontScalePct = Math.max(80, Math.min(130, fontScalePct + delta));
+      document.documentElement.style.setProperty('--app-font-scale', fontScalePct + '%');
+      try { localStorage.setItem('zx-font-scale', String(fontScalePct)); } catch (e) { /* ignore */ }
+    }
+    (function initFontPrefs() {
+      let k = 'sf-display', sc = 100;
+      try { k = localStorage.getItem('zx-font-style') || k; sc = parseInt(localStorage.getItem('zx-font-scale'), 10) || sc; } catch (e) { /* ignore */ }
+      fontScalePct = Math.max(80, Math.min(130, sc));
+      document.documentElement.style.setProperty('--app-font-scale', fontScalePct + '%');
+      setFontStyle(k, true);
+    })();
+
+    /* ================= v1.5.2.9: ASM compile log ================= */
+    let asmLogEntries = [];
+    let asmLogFilter = 'all';
+    function asmLogAdd(level, message, line) {
+      const d = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      asmLogEntries.push({ level, message, line: line || null, time: `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}` });
+      if (asmLogEntries.length > 300) asmLogEntries.splice(0, asmLogEntries.length - 300);
+    }
+    function renderAsmLog() {
+      const body = document.getElementById('asm-log-body');
+      if (!body) return;
+      const counts = { all: asmLogEntries.length, error: 0, warning: 0, success: 0 };
+      asmLogEntries.forEach(e => { if (counts[e.level] !== undefined) counts[e.level]++; });
+      Object.keys(counts).forEach(k => { const el = document.getElementById('log-n-' + k); if (el) el.textContent = counts[k]; });
+      document.querySelectorAll('#asm-log-panel .log-chip').forEach(c => c.classList.toggle('active', c.getAttribute('data-f') === asmLogFilter));
+      const shown = asmLogEntries.filter(e => asmLogFilter === 'all' || e.level === asmLogFilter);
+      if (!shown.length) {
+        body.innerHTML = '<div class="asm-log-empty">' + (asmLogEntries.length ? 'Nothing in this filter.' : 'No messages yet. Compile or press Check Only.') + '</div>';
+        return;
+      }
+      const label = { error: 'ERROR', warning: 'WARN', success: 'OK', info: 'INFO' };
+      body.innerHTML = shown.slice().reverse().map(e =>
+        `<div class="log-row log-${e.level}"><span class="log-badge">${label[e.level] || 'INFO'}</span><span class="log-time">${e.time}</span><span class="log-msg">${escapeHtml(e.message)}</span>` +
+        (e.line ? `<button class="log-line" onclick="asmGoToLine(${e.line})">line ${e.line}</button>` : '') + '</div>'
+      ).join('');
+    }
+    function setAsmLogFilter(f) { asmLogFilter = f; renderAsmLog(); }
+    function clearAsmLog() { asmLogEntries = []; renderAsmLog(); }
+    function asmLogAsText() {
+      return asmLogEntries.map(e => `[${e.time}] ${e.level.toUpperCase()}${e.line ? ' (line ' + e.line + ')' : ''}: ${e.message}`).join('\n');
+    }
+    function copyAsmLog() {
+      const text = asmLogAsText();
+      if (!text) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).catch(() => {});
+    }
+    function downloadAsmLog() {
+      const text = asmLogAsText();
+      if (!text) return;
+      triggerBlobDownload(new Blob([text + '\n'], { type: 'text/plain' }), 'asm-compile-log.txt', 'text/plain');
+    }
+    function asmGoToLine(n) {
+      const ta = document.getElementById('asm-code');
+      if (!ta) return;
+      const lines = ta.value.split('\n');
+      let start = 0;
+      for (let i = 0; i < n - 1 && i < lines.length; i++) start += lines[i].length + 1;
+      const end = start + (lines[n - 1] ? lines[n - 1].length : 0);
+      try { ta.focus(); ta.setSelectionRange(start, end); } catch (e) { /* ignore */ }
+    }
+    function asmGoToFirstProblem() {
+      const e = asmLogEntries.slice().reverse().find(x => x.line && (x.level === 'error' || x.level === 'warning'));
+      if (e) asmGoToLine(e.line);
+    }
+    function asmErrorLine(msg) {
+      const m = /^Line (\d+):/.exec(msg);
+      return m ? parseInt(m[1], 10) : null;
+    }
+
+    // Tolerant diagnostics: collects every error/warning instead of stopping at the first.
+    function asmDiagnose(source, origin) {
+      const diags = [];
+      const add = (level, message, line) => diags.push({ level, message: message.replace(/^Line \d+:\s*/, ''), line: line || null });
+      const rawLines = source.split(/\r?\n/);
+      const symbols = {};
+      const labelLines = {};
+      const items = [];
+      let pc = origin;
+      let hasOrg = false;
+
+      // Pass 1 (tolerant)
+      for (let i = 0; i < rawLines.length; i++) {
+        let line = asmStripComment(rawLines[i]).trim();
+        if (!line) continue;
+        try {
+          while (true) {
+            const lm = line.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(.*)$/);
+            if (!lm) break;
+            const key = lm[1].toUpperCase();
+            if (Object.prototype.hasOwnProperty.call(symbols, key)) add('error', `Duplicate label "${lm[1]}" (first defined on line ${labelLines[key]}). Labels are not case-sensitive.`, i + 1);
+            else { symbols[key] = pc; labelLines[key] = i + 1; }
+            line = lm[2].trim();
+            if (!line) break;
+          }
+          if (!line) continue;
+          const em = line.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*(?:EQU|=)\s*(.+)$/i);
+          if (em) { symbols[em[1].toUpperCase()] = asmEvalExpr(em[2], symbols, pc); labelLines[em[1].toUpperCase()] = i + 1; continue; }
+          const om = line.match(/^([A-Za-z.][A-Za-z0-9._]*)\b\s*(.*)$/);
+          if (!om) { add('error', `Cannot parse line "${rawLines[i].trim()}"`, i + 1); continue; }
+          const op = om[1].toUpperCase(), rest = om[2].trim();
+          items.push({ lineNumber: i + 1, pc, op, rest });
+          if (op === 'ORG') {
+            hasOrg = true;
+            const np = asmEvalExpr(rest, symbols, pc);
+            if (np < pc) add('error', 'ORG cannot move backward', i + 1); else pc = np;
+            continue;
+          }
+          pc += asmEstimateSize(op, rest);
+        } catch (err) {
+          add('error', err.message, i + 1);
+        }
+      }
+
+      // Pass 2 (tolerant) + warnings
+      const refs = new Set();
+      const identRe = /[A-Za-z_][A-Za-z0-9_]*/g;
+      let lastOp = null, lastLine = null, diActive = false, diLine = null;
+      let emitted = 0;
+      let pc2 = origin;
+      for (const it of items) {
+        if (it.op === 'ORG') { try { pc2 = asmEvalExpr(it.rest, symbols, pc2); } catch (e) { /* reported */ } continue; }
+        const restNoStr = it.rest.replace(/"(?:[^"\\]|\\.)*"/g, '""');
+        (restNoStr.match(identRe) || []).forEach(t => refs.add(t.toUpperCase()));
+        const uop = it.op;
+        const isDir = ['DB', 'DEFB', 'DEFM', 'DW', 'DEFW', 'DS', 'DEFS'].includes(uop);
+        try {
+          let out;
+          if (isDir) {
+            out = asmEmitDirectiveBytes(uop, it.rest, symbols, pc2);
+            if (['DB', 'DEFB'].includes(uop)) {
+              for (const part of asmSplitArgs(it.rest)) {
+                if (asmDecodeStringLiteral(part) !== null) continue;
+                try { const v = asmEvalExpr(part, symbols, pc2); if (v > 255 || v < -128) add('warning', `Value ${v} does not fit in one byte; it will be truncated to ${v & 0xFF}.`, it.lineNumber); } catch (e) { /* reported above */ }
+              }
+            }
+          } else {
+            out = asmEmitInstruction(uop, it.rest, symbols, pc2);
+            if (uop === 'DI') { diActive = true; diLine = it.lineNumber; }
+            if (uop === 'EI') diActive = false;
+            if (uop === 'RET' && diActive) { add('warning', 'Returning to BASIC with interrupts disabled (DI without EI); the keyboard will stop responding.', it.lineNumber); diActive = false; }
+            if (uop === 'JR' && /^\$\s*$|^\$\s*[+-]\s*0$/.test(it.rest.split(',').pop().trim())) add('warning', 'Infinite loop (JR $): the program will never return.', it.lineNumber);
+          }
+          emitted += out.length;
+          pc2 += out.length;
+          if (!isDir) { lastOp = uop; lastLine = it.lineNumber; }
+        } catch (err) {
+          add('error', err.message, it.lineNumber);
+        }
+      }
+
+      // Warnings
+      const firstLabel = Object.keys(labelLines).sort((x, y) => labelLines[x] - labelLines[y])[0];
+      Object.keys(labelLines).forEach(k => {
+        if (k !== firstLabel && !refs.has(k)) add('warning', `Label "${k}" is defined but never used.`, labelLines[k]);
+      });
+      if (!hasOrg) add('info', `No ORG directive: using origin ${origin}.`, null);
+      if (emitted > 0 && !['RET', 'JP', 'JR', 'HALT', 'RETN', 'RETI'].includes(lastOp) && lastOp !== null) add('warning', `Program does not end with RET/JP/JR/HALT (last instruction ${lastOp}); execution would run into whatever follows.`, lastLine);
+      if (origin < 16384) add('warning', `Origin ${origin} is inside ROM (0–16383); the code can't be loaded there.`, null);
+      else if (origin < 23296) add('warning', `Origin ${origin} overlaps the screen memory (16384–23295).`, null);
+      else if (origin < 23552) add('warning', `Origin ${origin} overlaps the printer buffer / system variables (23296–23551).`, null);
+      if (origin + emitted > 65536) add('error', `Code runs past the end of memory (${origin + emitted} > 65536).`, null);
+      else if (emitted > 0 && origin + emitted > 65368 && origin < 65368) add('warning', 'Code reaches the top of RAM (UDG area, 65368+).', null);
+      const seen = new Set();
+      const uniq = diags.filter(d => { const k = d.level + '|' + d.line + '|' + d.message; if (seen.has(k)) return false; seen.add(k); return true; });
+      return { diags: uniq, bytes: emitted };
+    }
+
+    function asmRunDiagnostics(opts) {
+      const { source, origin } = getAsmBuildContext();
+      if (!source.trim()) { asmLogAdd('error', 'Assembly source is blank.'); renderAsmLog(); return null; }
+      const res = asmDiagnose(source, origin);
+      const sev = { error: 0, warning: 1, info: 2 };
+      res.diags.sort((a, b) => (sev[a.level] - sev[b.level]) || ((a.line || 0) - (b.line || 0)));
+      res.diags.forEach(d => asmLogAdd(d.level, d.message, d.line));
+      const errs = res.diags.filter(d => d.level === 'error').length;
+      const warns = res.diags.filter(d => d.level === 'warning').length;
+      res.errors = errs; res.warnings = warns;
+      return res;
+    }
+
+    function asmCheckOnly() {
+      asmLogAdd('info', 'Check started (no .TAP will be written).');
+      const res = asmRunDiagnostics();
+      if (res) {
+        if (res.errors) asmLogAdd('error', `Check failed: ${res.errors} error(s), ${res.warnings} warning(s).`);
+        else asmLogAdd('success', `Check passed: ${res.bytes} bytes, ${res.warnings} warning(s).`);
+        showAsmStatus(res.errors ? `Check failed: ${res.errors} error(s), ${res.warnings} warning(s). See the Compile Log.` : `Check passed: ${res.bytes} bytes, ${res.warnings} warning(s).`, !!res.errors, true);
+      }
+      renderAsmLog();
+    }
+
+    let asmLiveTimer = null;
+    function setAsmLiveCheck(on) {
+      try { localStorage.setItem('zx-asm-live', String(!!on)); } catch (e) { /* ignore */ }
+      const ta = document.getElementById('asm-code');
+      if (ta && !ta._liveBound) {
+        ta._liveBound = true;
+        ta.addEventListener('input', () => {
+          const cb = document.getElementById('asm-live-check');
+          if (!cb || !cb.checked) return;
+          clearTimeout(asmLiveTimer);
+          asmLiveTimer = setTimeout(() => {
+            const { source, origin } = getAsmBuildContext();
+            if (!source.trim()) return;
+            const res = asmDiagnose(source, origin);
+            asmLogEntries = asmLogEntries.filter(e => !e.live);
+            res.diags.filter(d => d.level !== 'info').forEach(d => { asmLogAdd(d.level, d.message, d.line); asmLogEntries[asmLogEntries.length - 1].live = true; });
+            renderAsmLog();
+          }, 700);
+        });
+        ta.addEventListener('keydown', ev => {
+          if ((ev.ctrlKey || ev.metaKey) && ev.key === 'Enter') { ev.preventDefault(); compileAsmToTap(); }
+        });
+      }
+    }
+    (function initAsmLive() {
+      let on = false;
+      try { on = localStorage.getItem('zx-asm-live') === 'true'; } catch (e) { /* ignore */ }
+      const cb = document.getElementById('asm-live-check');
+      if (cb) cb.checked = on;
+      setAsmLiveCheck(on);
+    })();
+
+    function showAsmStatus(message, isError, noLog) {
       const statusBox = document.getElementById('asm-compile-status');
       if (!statusBox) return;
       statusBox.textContent = message;
       statusBox.className = 'compile-status-box ' + (isError ? 'compile-status-error' : 'compile-status-success');
       statusBox.style.display = 'block';
+      if (!noLog) { asmLogAdd(isError ? 'error' : 'success', message.replace(/^(ASM compile error|Error):\s*/, ''), isError ? asmErrorLine(message.replace(/^(ASM compile error|Error):\s*/, '')) : null); renderAsmLog(); }
+      if (isError) playUiError(); else playUiSuccess();
       clearTimeout(showAsmStatus._timer);
       showAsmStatus._timer = setTimeout(() => {
         statusBox.style.display = 'none';
@@ -2235,6 +4159,14 @@
       if (uop === 'OUT' || uop === 'IN') return 2;
       if (uop === 'PUSH' || uop === 'POP' || uop === 'INC16' || uop === 'DEC16') return 1;
 
+      if (uop === 'INC' || uop === 'DEC') {
+        const t = asmNormalizeToken(asmSplitArgs(rest)[0] || '');
+        if (['B','C','D','E','H','L','(HL)','A','BC','DE','HL','SP'].includes(t)) return 1;
+        throw new Error(`Unsupported ${uop} target: ${rest}`);
+      }
+
+      if (['RLC', 'RRC', 'RL', 'RR', 'SLA', 'SRA', 'SLL', 'SRL', 'BIT', 'RES', 'SET'].includes(uop)) return 2;
+
       if (['ADD', 'ADC', 'SBC', 'SUB', 'AND', 'XOR', 'OR', 'CP'].includes(uop)) {
         const args = asmSplitArgs(rest);
         if (args.length === 1) {
@@ -2271,7 +4203,7 @@
     }
 
     function asmParseLines(source, origin) {
-      const rawLines = source.split(/\\r?\\n/);
+      const rawLines = source.split(/\r?\n/);
       const symbols = {};
       const items = [];
       let pc = origin;
@@ -2281,21 +4213,25 @@
         if (!line) continue;
 
         while (true) {
-          const labelMatch = line.match(/^([A-Za-z_][A-Za-z0-9_]*)\\s*:\\s*(.*)$/);
+          const labelMatch = line.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(.*)$/);
           if (!labelMatch) break;
-          symbols[labelMatch[1].toUpperCase()] = pc;
+          const labelKey = labelMatch[1].toUpperCase();
+          if (Object.prototype.hasOwnProperty.call(symbols, labelKey)) {
+            throw new Error(`Line ${i + 1}: duplicate label "${labelMatch[1]}" \u2014 each label must be unique (labels are not case-sensitive).`);
+          }
+          symbols[labelKey] = pc;
           line = labelMatch[2].trim();
           if (!line) break;
         }
         if (!line) continue;
 
-        const equMatch = line.match(/^([A-Za-z_][A-Za-z0-9_]*)\\s*(?:EQU|=)\\s*(.+)$/i);
+        const equMatch = line.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*(?:EQU|=)\s*(.+)$/i);
         if (equMatch) {
           symbols[equMatch[1].toUpperCase()] = asmEvalExpr(equMatch[2], symbols, pc);
           continue;
         }
 
-        const opMatch = line.match(/^([A-Za-z.][A-Za-z0-9._]*)\\b\\s*(.*)$/);
+        const opMatch = line.match(/^([A-Za-z.][A-Za-z0-9._]*)\b\s*(.*)$/);
         if (!opMatch) throw new Error(`Line ${i + 1}: Cannot parse line "${rawLines[i]}"`);
 
         const op = opMatch[1].toUpperCase();
@@ -2499,6 +4435,23 @@
         }
       }
 
+      if (['RLC', 'RRC', 'RL', 'RR', 'SLA', 'SRA', 'SLL', 'SRL'].includes(uop)) {
+        const t = asmNormalizeToken(args[0] || '');
+        if (!Object.prototype.hasOwnProperty.call(r8, t)) throw new Error(`Unsupported ${uop} target: ${args[0]}`);
+        const baseOp = { RLC: 0, RRC: 1, RL: 2, RR: 3, SLA: 4, SRA: 5, SLL: 6, SRL: 7 }[uop];
+        return [0xCB, (baseOp * 8) + r8[t]];
+      }
+
+      if (['BIT', 'RES', 'SET'].includes(uop)) {
+        if (args.length !== 2) throw new Error(`Unsupported ${uop} form: ${rest}`);
+        const bit = asmEvalExpr(args[0], symbols, pc);
+        if (bit < 0 || bit > 7) throw new Error(`${uop} bit index out of range (0-7): ${args[0]}`);
+        const t = asmNormalizeToken(args[1]);
+        if (!Object.prototype.hasOwnProperty.call(r8, t)) throw new Error(`Unsupported ${uop} target: ${args[1]}`);
+        const base = { BIT: 0x40, RES: 0x80, SET: 0xC0 }[uop];
+        return [0xCB, base + (bit * 8) + r8[t]];
+      }
+
       if (uop === 'LD') {
         if (args.length !== 2) throw new Error(`Unsupported LD form: ${rest}`);
         const lhs = args[0];
@@ -2598,17 +4551,27 @@
     }
 
     function createTapDataBlock(flagByte, payloadBytes) {
-      const bodyLen = payloadBytes.length + 2;
-      const block = new Uint8Array(2 + bodyLen);
-      block[0] = bodyLen & 0xFF;
-      block[1] = (bodyLen >> 8) & 0xFF;
+      const data = payloadBytes instanceof Uint8Array ? payloadBytes : Uint8Array.from(payloadBytes || []);
+      const len = data.length + 2;
+      const block = new Uint8Array(len + 2);
+      block[0] = len & 0xFF;
+      block[1] = (len >> 8) & 0xFF;
       block[2] = flagByte & 0xFF;
-      for (let i = 0; i < payloadBytes.length; i++) block[3 + i] = payloadBytes[i];
-      block[3 + payloadBytes.length] = calculateChecksum(block, 2, payloadBytes.length + 1);
+      let checksum = flagByte & 0xFF;
+      for (let i = 0; i < data.length; i++) {
+        block[3 + i] = data[i];
+        checksum ^= data[i];
+      }
+      block[block.length - 1] = checksum;
       return block;
     }
 
+    function buildTapArchiveBytes(blocks) {
+      return concatUint8Arrays(blocks || []);
+    }
+
     function concatUint8Arrays(chunks) {
+
       const total = chunks.reduce((sum, arr) => sum + arr.length, 0);
       const out = new Uint8Array(total);
       let offset = 0;
@@ -2617,6 +4580,154 @@
         offset += chunk.length;
       }
       return out;
+    }
+
+    const ASM_SNIPPETS = {
+      'clear-screen': [
+        'CLEARSCR:',
+        ' LD HL,16384',
+        ' LD BC,6912',
+        'CLOOP:',
+        ' LD (HL),0',
+        ' INC HL',
+        ' DEC BC',
+        ' LD A,B',
+        ' OR C',
+        ' JR NZ,CLOOP',
+        ' RET'
+      ],
+      'print-char': [
+        'PRINTCHAR:',
+        ' LD A,65',
+        ' RST 16',
+        ' RET'
+      ],
+      'delay-loop': [
+        'DELAY:',
+        ' LD BC,10000',
+        'DELAYLOOP:',
+        ' DEC BC',
+        ' LD A,B',
+        ' OR C',
+        ' JR NZ,DELAYLOOP',
+        ' RET'
+      ],
+      'border-flash': [
+        'BORDERFLASH:',
+        ' LD B,8',
+        ' LD C,0',
+        'FLASHLOOP:',
+        ' LD A,C',
+        ' AND 7',
+        ' OUT (254),A',
+        ' INC C',
+        ' PUSH BC',
+        ' LD BC,5000',
+        'FDELAY:',
+        ' DEC BC',
+        ' LD A,B',
+        ' OR C',
+        ' JR NZ,FDELAY',
+        ' POP BC',
+        ' DJNZ FLASHLOOP',
+        ' RET'
+      ]
+    };
+
+    function insertAsmSnippet() {
+      const picker = document.getElementById('asm-snippet-picker');
+      const snippetLines = ASM_SNIPPETS[picker.value];
+      if (!snippetLines) return;
+
+      const textarea = document.getElementById('asm-code');
+      const current = textarea.value || '';
+      const separator = current.trim() ? '\n\n' : '';
+
+      // If a snippet label already exists in the program (labels are case-insensitive),
+      // give the snippet's copy a numeric suffix and update its references to match,
+      // so inserting the same snippet twice never creates duplicate labels.
+      const taken = new Set();
+      current.split(/\r?\n/).forEach(line => {
+        const m = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*(?::|\s+(?:EQU|=)\b)/i);
+        if (m) taken.add(m[1].toUpperCase());
+      });
+      const snippetLabels = snippetLines.map(l => (l.match(/^([A-Za-z_][A-Za-z0-9_]*):/) || [])[1]).filter(Boolean);
+      snippetLabels.forEach(l => taken.add(l.toUpperCase()));
+      const renames = {};
+      snippetLabels.forEach(label => {
+        const alreadyInProgram = current.split(/\r?\n/).some(line => {
+          const m = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:/);
+          return m && m[1].toUpperCase() === label.toUpperCase();
+        });
+        if (!alreadyInProgram) return;
+        let n = 2;
+        while (taken.has((label + n).toUpperCase())) n++;
+        renames[label] = label + n;
+        taken.add((label + n).toUpperCase());
+      });
+      const finalLines = snippetLines.map(line => {
+        let out = line;
+        Object.entries(renames).forEach(([from, to]) => {
+          out = out.replace(new RegExp('\\b' + from + '\\b', 'g'), to);
+        });
+        return out;
+      });
+
+      textarea.value = current + separator + finalLines.join('\n');
+      updateAsmEditorViews();
+    }
+
+    function getAsmBuildContext() {
+      const source = document.getElementById('asm-code').value || '';
+      const originRaw = parseInt(document.getElementById('asm-origin').value, 10);
+      const autoOrg = !!(document.getElementById('asm-auto-org') && document.getElementById('asm-auto-org').checked);
+      const baseOrigin = Number.isFinite(originRaw) ? originRaw : 32768;
+      const origin = autoOrg ? detectAsmOrigin(source, baseOrigin) : baseOrigin;
+      return { source, origin };
+    }
+
+    function downloadAsmBinary() {
+      const { source, origin } = getAsmBuildContext();
+      if (!source.trim()) { showAsmStatus('Error: Assembly source is blank.', true); return; }
+      try {
+        const assembled = assembleAsmSource(source, origin);
+        if (!assembled.bytes.length) throw new Error('No machine code was generated.');
+        const base = sanitizeDownloadName((document.getElementById('asm-filename')?.value || '').trim() || 'asmcode', 'asmcode');
+        triggerBlobDownload(new Blob([Uint8Array.from(assembled.bytes)], { type: 'application/octet-stream' }), `${base}.bin`, 'application/octet-stream');
+        showAsmStatus(`Saved ${assembled.bytes.length} raw bytes (load address ${origin}).`, false);
+      } catch (err) {
+        showAsmStatus(`Error: ${err.message}`, true);
+      }
+    }
+
+    function downloadAsmListing() {
+      const { source, origin } = getAsmBuildContext();
+      if (!source.trim()) { showAsmStatus('Error: Assembly source is blank.', true); return; }
+      try {
+        const assembled = assembleAsmSource(source, origin);
+        const listing = disassembleZ80Bytes(assembled.bytes, origin);
+        const base = sanitizeDownloadName((document.getElementById('asm-filename')?.value || '').trim() || 'asmcode', 'asmcode');
+        triggerBlobDownload(new Blob([listing + '\n'], { type: 'text/plain' }), `${base}.lst`, 'text/plain');
+        showAsmStatus('Saved disassembly listing.', false);
+      } catch (err) {
+        showAsmStatus(`Error: ${err.message}`, true);
+      }
+    }
+
+    function copyAsmCodeToClipboard() {
+      const textarea = document.getElementById('asm-code');
+      const text = textarea.value || '';
+      const onDone = () => showAsmStatus('Copied ASM code to clipboard.', false);
+      const onFail = () => showAsmStatus('Could not copy — select and copy manually.', true);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(onDone).catch(onFail);
+      } else {
+        try {
+          textarea.select();
+          document.execCommand('copy');
+          onDone();
+        } catch (e) { onFail(); }
+      }
     }
 
     function compileAsmToTap() {
@@ -2637,6 +4748,16 @@
         return;
       }
 
+      asmLogAdd('info', `Compile started (origin ${origin}, run ${runAddr}).`);
+      const diag = asmRunDiagnostics();
+      if (diag && diag.errors) {
+        asmLogAdd('error', `Compile failed: ${diag.errors} error(s), ${diag.warnings} warning(s). No .TAP written.`);
+        showAsmStatus(`Compile failed: ${diag.errors} error(s), ${diag.warnings} warning(s). See the Compile Log.`, true, true);
+        renderAsmLog();
+        updateAsmEditorViews();
+        asmGoToFirstProblem();
+        return;
+      }
       try {
         const assembled = assembleAsmSource(source, origin);
         const codeBytes = assembled.bytes;
@@ -2659,14 +4780,12 @@
 
         const tapFile = concatUint8Arrays(tapBlocks);
         const blob = new Blob([tapFile], { type: 'application/octet-stream' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${filename.trim() || 'ASMCODE'}.tap`;
-        a.click();
-        URL.revokeObjectURL(url);
+        triggerBlobDownload(blob, `${filename.trim() || 'ASMCODE'}.tap`, 'application/octet-stream');
 
-        showAsmStatus(`ASM compiled successfully. ${codeBytes.length} bytes assembled from origin ${origin}.`, false);
+        const wn = diag ? diag.warnings : 0;
+        asmLogAdd('success', `ASM compiled successfully: ${codeBytes.length} bytes at ${origin}, ${wn} warning(s). Saved ${filename.trim() || 'ASMCODE'}.tap.`);
+        showAsmStatus(`ASM compiled successfully. ${codeBytes.length} bytes assembled from origin ${origin}.` + (wn ? ` ${wn} warning(s) \u2014 see the Compile Log.` : ''), false, true);
+        renderAsmLog();
         updateAsmEditorViews();
       } catch (err) {
         showAsmStatus(`ASM compile error: ${err.message}`, true);
@@ -2706,18 +4825,65 @@
       return concatUint8Arrays(chunks);
     }
 
+    function sanitizeDownloadName(name, fallback = 'download') {
+      const raw = String(name || '').trim();
+      const cleaned = raw
+        .replace(/[\/:*?"<>|]+/g, '_')
+        .replace(/\s+/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^_+|_+$/g, '');
+      return (cleaned || fallback).toLowerCase();
+    }
+
+
+    function triggerBlobDownload(blob, filename, mime = 'application/octet-stream') {
+      const safeName = sanitizeDownloadName(filename, 'download');
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+
+      link.href = url;
+      link.download = safeName;
+      link.rel = 'noopener';
+      link.target = '_self';
+      link.style.position = 'fixed';
+      link.style.left = '-9999px';
+      link.style.top = '-9999px';
+      link.style.width = '1px';
+      link.style.height = '1px';
+      link.style.opacity = '0';
+
+      document.body.appendChild(link);
+
+      const cleanup = () => {
+        try { URL.revokeObjectURL(url); } catch (_) {}
+        try { link.remove(); } catch (_) {}
+      };
+
+      // Force a normal browser download path on Android/mobile browsers.
+      // Do not hand off to a file picker or file manager.
+      try {
+        link.dispatchEvent(new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+          view: window
+        }));
+      } catch (_) {
+        try {
+          link.click();
+        } catch (err) {
+          console.error('Download click failed:', err);
+        }
+      }
+
+      setTimeout(cleanup, 30000);
+    }
+
     function downloadTapeBytes(tapBytes, baseName, format) {
-      const safeBase = (baseName || '').trim() || 'spectrum_loader';
+      const safeBase = sanitizeDownloadName((baseName || '').trim() || 'spectrum_loader', 'spectrum_loader');
       const tapeFormat = (format || 'tap').toLowerCase() === 'tzx' ? 'tzx' : 'tap';
       const outputBytes = tapeFormat === 'tzx' ? buildTzxFromTapBytes(tapBytes) : tapBytes;
-
       const blob = new Blob([outputBytes], { type: 'application/octet-stream' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${safeBase}.${tapeFormat}`;
-      a.click();
-      URL.revokeObjectURL(url);
+      triggerBlobDownload(blob, `${safeBase}.${tapeFormat}`, 'application/octet-stream');
     }
 
     function refreshTapeInspector() {
@@ -2766,6 +4932,150 @@
       }
     }
 
+    // Returns [takenCycles, notTakenCycles] in T-states for an opcode the disassembler recognises,
+    // or null for bytes it shows as DEFB. Mirrors the decode order in disassembleZ80Bytes.
+    function z80InstructionTStates(b, b2) {
+      if (b === 0xCB) {
+        if (b2 === undefined) return null;
+        if ((b2 & 7) !== 6) return [8, 8];
+        return b2 >= 0x40 && b2 < 0x80 ? [12, 12] : [15, 15];
+      }
+      if (b === 0x00 || b === 0x76) return [4, 4];
+      if (b >= 0x40 && b <= 0x7F) return (((b >> 3) & 7) === 6 || (b & 7) === 6) ? [7, 7] : [4, 4];
+      if (b >= 0x80 && b <= 0xBF) return (b & 7) === 6 ? [7, 7] : [4, 4];
+      if ((b & 0xC7) === 0x06) return ((b >> 3) & 7) === 6 ? [10, 10] : [7, 7];
+      if ((b & 0xCF) === 0x01) return [10, 10];
+      if ((b & 0xC7) === 0x04 || (b & 0xC7) === 0x05) return ((b >> 3) & 7) === 6 ? [11, 11] : [4, 4];
+      if ((b & 0xCF) === 0x03 || (b & 0xCF) === 0x0B) return [6, 6];
+      if ((b & 0xCF) === 0x09) return [11, 11];
+      if (b === 0x02 || b === 0x12 || b === 0x0A || b === 0x1A) return [7, 7];
+      if (b === 0x22 || b === 0x2A) return [16, 16];
+      if (b === 0x32 || b === 0x3A) return [13, 13];
+      if ([0x07, 0x0F, 0x17, 0x1F, 0x27, 0x2F, 0x37, 0x3F, 0xD9, 0xE9, 0xEB, 0xF3, 0xFB].includes(b)) return [4, 4];
+      if (b === 0xF9) return [6, 6];
+      if (b === 0xC9) return [10, 10];
+      if ((b & 0xC7) === 0xC0) return [11, 5];
+      if ((b & 0xCF) === 0xC1) return [10, 10];
+      if ((b & 0xCF) === 0xC5) return [11, 11];
+      if (b === 0xC3 || (b & 0xC7) === 0xC2) return [10, 10];
+      if (b === 0xCD) return [17, 17];
+      if ((b & 0xC7) === 0xC4) return [17, 10];
+      if ((b & 0xC7) === 0xC6) return [7, 7];
+      if ((b & 0xC7) === 0xC7) return [11, 11];
+      if (b === 0x18) return [12, 12];
+      if (b === 0x10) return [13, 8];
+      if ((b & 0xE7) === 0x20) return [12, 7];
+      if (b === 0xD3 || b === 0xDB) return [11, 11];
+      return null;
+    }
+
+    function disassembleZ80Bytes(bytes, origin) {
+      const R8 = ['B', 'C', 'D', 'E', 'H', 'L', '(HL)', 'A'];
+      const RP = ['BC', 'DE', 'HL', 'SP'];
+      const RP2 = ['BC', 'DE', 'HL', 'AF'];
+      const CC = ['NZ', 'Z', 'NC', 'C', 'PO', 'PE', 'P', 'M'];
+      const ALU = ['ADD A,', 'ADC A,', 'SUB ', 'SBC A,', 'AND ', 'XOR ', 'OR ', 'CP '];
+      const CB_ROT = ['RLC', 'RRC', 'RL', 'RR', 'SLA', 'SRA', 'SLL', 'SRL'];
+
+      function hex2(v) { return '$' + v.toString(16).toUpperCase().padStart(2, '0'); }
+      function hex4(v) { return '$' + (v & 0xFFFF).toString(16).toUpperCase().padStart(4, '0'); }
+      function signedByte(v) { return v > 127 ? v - 256 : v; }
+
+      const lines = [];
+      const len = bytes.length;
+      let i = 0;
+      let totalNotTaken = 0;
+
+      while (i < len) {
+        const addr = origin + i;
+        const b = bytes[i];
+        let mnemonic = null;
+        let size = 1;
+        const raw = [b];
+
+        if (b === 0xCB) {
+          const b2 = bytes[i + 1];
+          if (b2 === undefined) { mnemonic = 'DEFB ' + hex2(b); }
+          else {
+            raw.push(b2); size = 2;
+            const r = R8[b2 & 7];
+            if (b2 < 0x40) mnemonic = `${CB_ROT[(b2 >> 3) & 7]} ${r}`;
+            else if (b2 < 0x80) mnemonic = `BIT ${(b2 >> 3) & 7},${r}`;
+            else if (b2 < 0xC0) mnemonic = `RES ${(b2 >> 3) & 7},${r}`;
+            else mnemonic = `SET ${(b2 >> 3) & 7},${r}`;
+          }
+        }
+        else if (b === 0x00) mnemonic = 'NOP';
+        else if (b === 0x76) mnemonic = 'HALT';
+        else if (b >= 0x40 && b <= 0x7F) mnemonic = `LD ${R8[(b >> 3) & 7]},${R8[b & 7]}`;
+        else if (b >= 0x80 && b <= 0xBF) mnemonic = ALU[(b >> 3) & 7] + R8[b & 7];
+        else if ((b & 0xC7) === 0x06) { const n = bytes[i + 1]; size = 2; raw.push(n); mnemonic = `LD ${R8[(b >> 3) & 7]},${hex2(n)}`; }
+        else if ((b & 0xCF) === 0x01) { const lo = bytes[i + 1], hi = bytes[i + 2]; size = 3; raw.push(lo, hi); mnemonic = `LD ${RP[(b >> 4) & 3]},${hex4((hi << 8) | lo)}`; }
+        else if ((b & 0xC7) === 0x04) mnemonic = `INC ${R8[(b >> 3) & 7]}`;
+        else if ((b & 0xC7) === 0x05) mnemonic = `DEC ${R8[(b >> 3) & 7]}`;
+        else if ((b & 0xCF) === 0x03) mnemonic = `INC ${RP[(b >> 4) & 3]}`;
+        else if ((b & 0xCF) === 0x0B) mnemonic = `DEC ${RP[(b >> 4) & 3]}`;
+        else if ((b & 0xCF) === 0x09) mnemonic = `ADD HL,${RP[(b >> 4) & 3]}`;
+        else if (b === 0x02) mnemonic = 'LD (BC),A';
+        else if (b === 0x12) mnemonic = 'LD (DE),A';
+        else if (b === 0x0A) mnemonic = 'LD A,(BC)';
+        else if (b === 0x1A) mnemonic = 'LD A,(DE)';
+        else if (b === 0x22) { const lo = bytes[i + 1], hi = bytes[i + 2]; size = 3; raw.push(lo, hi); mnemonic = `LD (${hex4((hi << 8) | lo)}),HL`; }
+        else if (b === 0x2A) { const lo = bytes[i + 1], hi = bytes[i + 2]; size = 3; raw.push(lo, hi); mnemonic = `LD HL,(${hex4((hi << 8) | lo)})`; }
+        else if (b === 0x32) { const lo = bytes[i + 1], hi = bytes[i + 2]; size = 3; raw.push(lo, hi); mnemonic = `LD (${hex4((hi << 8) | lo)}),A`; }
+        else if (b === 0x3A) { const lo = bytes[i + 1], hi = bytes[i + 2]; size = 3; raw.push(lo, hi); mnemonic = `LD A,(${hex4((hi << 8) | lo)})`; }
+        else if (b === 0x07) mnemonic = 'RLCA';
+        else if (b === 0x0F) mnemonic = 'RRCA';
+        else if (b === 0x17) mnemonic = 'RLA';
+        else if (b === 0x1F) mnemonic = 'RRA';
+        else if (b === 0x27) mnemonic = 'DAA';
+        else if (b === 0x2F) mnemonic = 'CPL';
+        else if (b === 0x37) mnemonic = 'SCF';
+        else if (b === 0x3F) mnemonic = 'CCF';
+        else if (b === 0xD9) mnemonic = 'EXX';
+        else if (b === 0xE9) mnemonic = 'JP (HL)';
+        else if (b === 0xEB) mnemonic = 'EX DE,HL';
+        else if (b === 0xF9) mnemonic = 'LD SP,HL';
+        else if (b === 0xF3) mnemonic = 'DI';
+        else if (b === 0xFB) mnemonic = 'EI';
+        else if (b === 0xC9) mnemonic = 'RET';
+        else if ((b & 0xC7) === 0xC0) mnemonic = `RET ${CC[(b >> 3) & 7]}`;
+        else if ((b & 0xCF) === 0xC1) mnemonic = `POP ${RP2[(b >> 4) & 3]}`;
+        else if ((b & 0xCF) === 0xC5) mnemonic = `PUSH ${RP2[(b >> 4) & 3]}`;
+        else if (b === 0xC3) { const lo = bytes[i + 1], hi = bytes[i + 2]; size = 3; raw.push(lo, hi); mnemonic = `JP ${hex4((hi << 8) | lo)}`; }
+        else if ((b & 0xC7) === 0xC2) { const lo = bytes[i + 1], hi = bytes[i + 2]; size = 3; raw.push(lo, hi); mnemonic = `JP ${CC[(b >> 3) & 7]},${hex4((hi << 8) | lo)}`; }
+        else if (b === 0xCD) { const lo = bytes[i + 1], hi = bytes[i + 2]; size = 3; raw.push(lo, hi); mnemonic = `CALL ${hex4((hi << 8) | lo)}`; }
+        else if ((b & 0xC7) === 0xC4) { const lo = bytes[i + 1], hi = bytes[i + 2]; size = 3; raw.push(lo, hi); mnemonic = `CALL ${CC[(b >> 3) & 7]},${hex4((hi << 8) | lo)}`; }
+        else if ((b & 0xC7) === 0xC6) { const n = bytes[i + 1]; size = 2; raw.push(n); mnemonic = ALU[(b >> 3) & 7] + hex2(n); }
+        else if ((b & 0xC7) === 0xC7) mnemonic = `RST ${hex2(b & 0x38)}`;
+        else if (b === 0x18) { const e = bytes[i + 1]; size = 2; raw.push(e); mnemonic = `JR ${hex4(addr + 2 + signedByte(e))}`; }
+        else if (b === 0x10) { const e = bytes[i + 1]; size = 2; raw.push(e); mnemonic = `DJNZ ${hex4(addr + 2 + signedByte(e))}`; }
+        else if ((b & 0xE7) === 0x20) { const e = bytes[i + 1]; size = 2; raw.push(e); mnemonic = `JR ${CC[(b >> 3) & 3]},${hex4(addr + 2 + signedByte(e))}`; }
+        else if (b === 0xD3) { const n = bytes[i + 1]; size = 2; raw.push(n); mnemonic = `OUT (${hex2(n)}),A`; }
+        else if (b === 0xDB) { const n = bytes[i + 1]; size = 2; raw.push(n); mnemonic = `IN A,(${hex2(n)})`; }
+        else mnemonic = 'DEFB ' + hex2(b);
+
+        if (i + size > len) { mnemonic = 'DEFB ' + hex2(b); size = 1; raw.length = 1; }
+
+        const bytesStr = raw.map(x => x.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+        const timing = mnemonic.startsWith('DEFB') ? null : z80InstructionTStates(b, raw[1]);
+        let tText = '';
+        if (timing) {
+          tText = timing[0] === timing[1] ? `${timing[0]}T` : `${timing[0]}/${timing[1]}T`;
+          totalNotTaken += timing[1];
+        }
+        lines.push(`${hex4(addr)}: ${bytesStr.padEnd(9)} ${mnemonic.padEnd(18)} ${tText}`.trimEnd());
+        i += size;
+      }
+
+      if (!lines.length) return '(no bytes assembled)';
+      const micros = (totalNotTaken / 3.5).toFixed(1);
+      lines.push('');
+      lines.push(`One straight-line pass: ${totalNotTaken} T-states (~${micros} \u00B5s at 3.5 MHz, uncontended memory).`);
+      lines.push('Conditional branches are counted as not taken; "a/bT" means taken/not-taken. DEFB data bytes are not timed.');
+      return lines.join('\n');
+    }
+
     function formatAsmHexDump(bytes) {
       if (!bytes || !bytes.length) return 'Compiled bytes will appear here...';
       const lines = [];
@@ -2786,32 +5096,50 @@
       const source = document.getElementById('asm-code').value || '';
       const symbolsBox = document.getElementById('asm-symbol-browser');
       const memoryBox = document.getElementById('asm-memory-viewer');
+      const summaryBox = document.getElementById('asm-build-summary');
       const originField = document.getElementById('asm-origin');
+      const runField = document.getElementById('asm-runaddr');
       const autoOrg = !!(document.getElementById('asm-auto-org') && document.getElementById('asm-auto-org').checked);
+
+      const fallbackOrigin = parseInt(originField.value, 10);
+      const baseOrigin = Number.isFinite(fallbackOrigin) ? fallbackOrigin : 32768;
+      const fallbackRun = parseInt(runField.value, 10);
+      const baseRun = Number.isFinite(fallbackRun) ? fallbackRun : baseOrigin;
+      const origin = source.trim() ? (autoOrg ? detectAsmOrigin(source, baseOrigin) : baseOrigin) : baseOrigin;
+      const runAddr = source.trim() ? baseRun : baseOrigin;
+
+      if (autoOrg && originField) originField.value = String(origin);
 
       if (!source.trim()) {
         if (symbolsBox) symbolsBox.textContent = 'No labels found.';
         if (memoryBox) memoryBox.textContent = 'Compiled bytes will appear here...';
+        if (summaryBox) summaryBox.textContent = buildAsmProgramSummary(source, { symbols: {}, bytes: new Uint8Array() }, origin, runAddr);
+        const disasmBoxEmpty = document.getElementById('asm-disassembly-view');
+        if (disasmBoxEmpty) disasmBoxEmpty.textContent = 'Compile to see a disassembly listing here...';
         return;
       }
 
-      const fallbackOrigin = parseInt(originField.value, 10);
-      const baseOrigin = Number.isFinite(fallbackOrigin) ? fallbackOrigin : 32768;
-      const origin = autoOrg ? detectAsmOrigin(source, baseOrigin) : baseOrigin;
-      if (autoOrg && originField) originField.value = String(origin);
-
       try {
         const assembled = assembleAsmSource(source, origin);
-        const symbolEntries = Object.entries(assembled.symbols || {}).sort((a, b) => a[0].localeCompare(b[0]));
+        const sortSymbols = !!(document.getElementById('asm-sort-symbols') && document.getElementById('asm-sort-symbols').checked);
+        const symbolFilter = String(document.getElementById('asm-symbol-filter')?.value || '').trim().toLowerCase();
+        const symbolEntries = Object.entries(assembled.symbols || {}).filter(([name]) => !symbolFilter || String(name).toLowerCase().includes(symbolFilter));
+        if (sortSymbols) symbolEntries.sort((a, b) => a[0].localeCompare(b[0]));
         if (symbolsBox) {
           symbolsBox.textContent = symbolEntries.length
             ? symbolEntries.map(([name, addr]) => `${name} = ${addr} ($${addr.toString(16).toUpperCase().padStart(4, '0')})`).join('\n')
             : 'No labels found.';
         }
         if (memoryBox) memoryBox.textContent = formatAsmHexDump(assembled.bytes);
+        if (summaryBox) summaryBox.textContent = buildAsmProgramSummary(source, assembled, origin, runAddr);
+        const disasmBox = document.getElementById('asm-disassembly-view');
+        if (disasmBox) disasmBox.textContent = disassembleZ80Bytes(assembled.bytes, origin);
       } catch (err) {
         if (symbolsBox) symbolsBox.textContent = `ASM preview error:\n${err.message}`;
         if (memoryBox) memoryBox.textContent = `Unable to assemble preview.\n${err.message}`;
+        if (summaryBox) summaryBox.textContent = `Build summary unavailable.\n${err.message}`;
+        const disasmBoxErr = document.getElementById('asm-disassembly-view');
+        if (disasmBoxErr) disasmBoxErr.textContent = `Unable to disassemble.\n${err.message}`;
       }
     }
 
@@ -2845,9 +5173,7 @@
       for (let i = 0; i < dataLen; i++) data[3 + i] = spectrumScreenBytes[i];
       data[3 + dataLen] = calculateChecksum(data, 2, dataLen + 1);
 
-      const tapFile = new Uint8Array(header.length + data.length);
-      tapFile.set(header, 0);
-      tapFile.set(data, header.length);
+      const tapFile = buildTapArchiveBytes([header, data]);
 
       parseTapBytes(tapFile);
       const tapeFormat = getSelectedTapeFormat('tap-export-format');
@@ -2901,7 +5227,129 @@
 
       const status = document.getElementById('tape-status');
       status.textContent = `Loaded ${activeTapeBlocks.length} Blocks`;
+      if (activeTapeBlocks.length > 0) playUiSuccess();
       refreshTapeInspector();
+      renderTapeBlocksList();
+    }
+
+    const TAPE_CLOCK_HZ = 3500000;
+    const TAPE_PILOT_PULSE_TSTATES = 2168;
+    const TAPE_SYNC1_TSTATES = 667;
+    const TAPE_SYNC2_TSTATES = 735;
+    const TAPE_BIT0_TSTATES = 855;
+    const TAPE_BIT1_TSTATES = 1710;
+    const TAPE_PILOT_PULSES_HEADER = 8063;
+    const TAPE_PILOT_PULSES_DATA = 3223;
+    const TAPE_PAUSE_AFTER_BLOCK_SEC = 1;
+
+    function estimateTapeBlockSeconds(block) {
+      const data = block.data;
+      if (!data || !data.length) return 0;
+      const flag = data[0];
+      const pilotPulses = flag < 128 ? TAPE_PILOT_PULSES_HEADER : TAPE_PILOT_PULSES_DATA;
+      let tStates = (pilotPulses * TAPE_PILOT_PULSE_TSTATES) + TAPE_SYNC1_TSTATES + TAPE_SYNC2_TSTATES;
+      for (let i = 0; i < data.length; i++) {
+        const byte = data[i];
+        for (let b = 7; b >= 0; b--) {
+          const bit = (byte >> b) & 1;
+          tStates += (bit ? TAPE_BIT1_TSTATES : TAPE_BIT0_TSTATES) * 2;
+        }
+      }
+      return tStates / TAPE_CLOCK_HZ;
+    }
+
+    function formatTapeTimestamp(totalSeconds) {
+      const secs = Math.max(0, Math.round(totalSeconds));
+      const mm = Math.floor(secs / 60);
+      const ss = secs % 60;
+      return `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
+    }
+
+    const TAPE_BLOCK_ICONS = {
+      program: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 3 12 9 18"></polyline><polyline points="15 6 21 12 15 18"></polyline></svg>',
+      code: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1"></rect><line x1="12" y1="1" x2="12" y2="4"></line><line x1="12" y1="20" x2="12" y2="23"></line><line x1="1" y1="12" x2="4" y2="12"></line><line x1="20" y1="12" x2="23" y2="12"></line></svg>',
+      data: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>',
+      pause: '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>',
+      warn: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+    };
+
+    function describeTapeBlock(block) {
+      const data = block.data;
+      const flag = data[0];
+
+      if (flag === 0 && block.size === 19) {
+        let checksum = 0;
+        for (let i = 0; i < 18; i++) checksum ^= data[i];
+        const valid = checksum === data[18];
+
+        if (!valid) return { label: 'Corrupt Header', icon: 'warn', corrupt: true };
+
+        const fileType = data[1];
+        const name = Array.from(data.slice(2, 12)).map(c => String.fromCharCode(c)).join('').trimEnd();
+
+        if (fileType === 0) return { label: `Program: ${name}`, icon: 'program', corrupt: false };
+        if (fileType === 3) {
+          let suffix = '';
+          if (block.purpose === 'loading-screen') suffix = ' (for Loading Screen)';
+          else if (block.purpose === 'basic-data') suffix = ' (for BASIC data)';
+          return { label: `Code: ${name}${suffix}`, icon: 'code', corrupt: false };
+        }
+        if (fileType === 1) return { label: `Numbers: ${name}`, icon: 'data', corrupt: false };
+        if (fileType === 2) return { label: `Chars: ${name}`, icon: 'data', corrupt: false };
+        return { label: `Header: ${name}`, icon: 'data', corrupt: false };
+      }
+
+      let checksum = 0;
+      for (let i = 0; i < data.length - 1; i++) checksum ^= data[i];
+      const valid = data.length > 1 && checksum === data[data.length - 1];
+      return valid
+        ? { label: 'Data', icon: 'data', corrupt: false }
+        : { label: 'Corrupt Block', icon: 'warn', corrupt: true };
+    }
+
+    function renderTapeBlocksList() {
+      const panel = document.getElementById('basic-tape-blocks-panel');
+      const list = document.getElementById('basic-tape-blocks-list');
+      if (!panel || !list) return;
+
+      if (!activeTapeBlocks.length) {
+        panel.style.display = 'none';
+        list.innerHTML = '';
+        return;
+      }
+
+      let runningSeconds = 0;
+      const rowsHtml = activeTapeBlocks.map((block, index) => {
+        const info = describeTapeBlock(block);
+        const timestamp = formatTapeTimestamp(runningSeconds);
+        runningSeconds += estimateTapeBlockSeconds(block) + TAPE_PAUSE_AFTER_BLOCK_SEC;
+
+        const rowClass = info.corrupt ? 'tape-block-corrupt' : (info.icon === 'data' ? 'tape-block-data' : '');
+        return `
+          <div class="tape-block-row ${rowClass}">
+            <div class="tape-block-index">${index + 1}</div>
+            <div class="tape-block-icon">${TAPE_BLOCK_ICONS[info.icon]}</div>
+            <div class="tape-block-info">
+              <div class="tape-block-name">${escapeHtml(info.label)}</div>
+              <div class="tape-block-meta">${block.size} bytes</div>
+            </div>
+            <div class="tape-block-time">${timestamp}</div>
+          </div>`;
+      }).join('');
+
+      const pauseRowHtml = `
+        <div class="tape-block-row">
+          <div class="tape-block-index">${activeTapeBlocks.length + 1}</div>
+          <div class="tape-block-icon">${TAPE_BLOCK_ICONS.pause}</div>
+          <div class="tape-block-info">
+            <div class="tape-block-name">Pause</div>
+            <div class="tape-block-meta">End of tape</div>
+          </div>
+          <div class="tape-block-time">${formatTapeTimestamp(runningSeconds)}</div>
+        </div>`;
+
+      list.innerHTML = rowsHtml + pauseRowHtml;
+      panel.style.display = 'block';
     }
 
     function initSimulatorAudioContext() {
@@ -2970,6 +5418,7 @@
       if (simBlockIndex >= activeTapeBlocks.length) {
         stopTapeSimulation();
         document.getElementById('tape-status').textContent = "LOAD COMPLETE";
+        playUiSuccess();
         renderScrBufferToCanvas();
         return;
       }
@@ -3074,18 +5523,19 @@
     // ----------------------------------------------------
     // 7. SYNTHETIC .WAV EXPORTER
     // ----------------------------------------------------
+
     function exportTapeToWav() {
       if (activeTapeBlocks.length === 0) generateTapeFromCurrentImage();
-      
+
       const speedMult = parseFloat(document.getElementById('param-speed').value);
       const sampleRate = 44100;
       let totalDuration = 0;
-      
+
       activeTapeBlocks.forEach(block => {
         const pilotPulses = (block.type === 0) ? 4000 : 1500;
         totalDuration += ((pilotPulses * PILOT_PULSE_TSTATES) / T_STATES_PER_SECOND) / speedMult;
         totalDuration += ((FIRST_SYNC_PULSE_TSTATES + SECOND_SYNC_PULSE_TSTATES) / T_STATES_PER_SECOND) / speedMult;
-        
+
         for (let i = 0; i < block.data.length; i++) {
           const byteVal = block.data[i];
           for (let bit = 7; bit >= 0; bit--) {
@@ -3125,7 +5575,7 @@
           for (let bit = 7; bit >= 0; bit--) {
             const period = (byteVal & (1 << bit)) !== 0 ? ONE_BIT_PULSE_TSTATES : ZERO_BIT_PULSE_TSTATES;
             const duration = (period / T_STATES_PER_SECOND) / speedMult;
-            
+
             addOfflinePulse(offlineCtx, renderTime, duration);
             renderTime += duration;
             addOfflinePulse(offlineCtx, renderTime, duration);
@@ -3138,13 +5588,8 @@
       document.getElementById('tape-status').textContent = "GENERATING WAV...";
       offlineCtx.startRendering().then(renderedBuffer => {
         const wavBlob = createWavBlobFromBuffer(renderedBuffer);
-        const url = URL.createObjectURL(wavBlob);
-        const a = document.createElement('a');
-        a.href = url;
         const name = getCleanFilename('tap-filename', '').trim();
-        a.download = name ? `${name}.wav` : "spectrum_loader.wav";
-        a.click();
-        URL.revokeObjectURL(url);
+        triggerBlobDownload(wavBlob, name ? `${name}.wav` : 'spectrum_loader.wav', 'audio/wav');
         document.getElementById('tape-status').textContent = "WAV EXPORTED";
       }).catch(err => {
         console.error(err);
