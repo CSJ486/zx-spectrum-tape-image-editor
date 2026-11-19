@@ -1,3 +1,56 @@
+# Project Status: Ended (November 25, 2026)
+
+**ZX Spectrum Mobile Tape & Image Loader / ASM Converter** reaches its end on **25 November 2026**.
+
+From that date the project is **archived**. There will be no further releases, bug fixes, or feature updates, and issues and pull requests will no longer be reviewed.
+
+---
+
+## Final release
+
+| | |
+|---|---|
+| **Final version** | v1.5.2.9-RELEASE |
+| **File** | `zx_spectrum_mobile_tape_image_loader_asm_converter_v1.5.2.9-release.html` |
+| **Type** | Single-file HTML/JS/CSS app, no install and no server needed |
+| **History** | See [`CHANGELOG.md`](CHANGELOG.md) |
+
+Open the HTML file in any modern browser, on desktop or mobile. It keeps working offline.
+
+## What the project does
+
+- **Spectrumizer:** converts images to ZX Spectrum screens, with Bayer and Floyd-Steinberg dithering and attribute handling.
+- **BASIC Editor:** Sinclair BASIC tokenizer, linter, and a `.TAP` export with an optional loading screen.
+- **ASM Converter:** Z80 assembler with a disassembly listing, symbol browser, compile log (errors, warnings, success), and `.TAP` export.
+- **Tape Play and WAV Decode:** play `.TAP` files as audio and decode tape audio back to data.
+- **Extras & FX:** CRT filter, UI sound effects, easter eggs, and font style options.
+
+## Known limitations at end of life
+
+- Light, Dark and System themes and colour schemes were planned but never shipped.
+- The disassembler cannot tell data (`DB`/`DEFM`) from code.
+- SF Pro Display only shows on Apple devices. Other devices fall back to Inter or the system font.
+- The app is tested against a mocked browser environment, not on every real device.
+
+## Using it after the end date
+
+The app is self-contained, so it will keep working as long as browsers run HTML. You are welcome to:
+
+- keep using the final release as it is;
+- fork the repository and continue development under your own name;
+- reuse any part of the code for your own retro-computing projects.
+
+Forks should keep the original licence terms and give credit to this project.
+
+## Thank you
+
+Thanks to everyone who tested builds, reported bugs, and suggested features. Happy loading, and may your tapes never need a second pass.
+
+---
+
+*Archived on 25 November 2026.*
+
+
 # 📼 ZX Spectrum Tape & Image Loader Editor
 
 A completely client-side retro-computing tool optimized for modern browsers. This single-file web application allows you to convert images, write native Sinclair BASIC, compile `.TAP` files, and synthesize real-time cassette loading audio directly in your browser.
