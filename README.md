@@ -11,7 +11,7 @@ From that date the project is **archived**. There will be no further releases, b
 | | |
 |---|---|
 | **Final version** | v1.5.2.9-RELEASE |
-| **File** | `zx_spectrum_mobile_tape_image_loader_asm_converter_v1.5.2.9-release.html` |
+| **File** | `zx_spectrum_mobile_tape_image_loader.html` |
 | **Type** | Single-file HTML/JS/CSS app, no install and no server needed |
 | **History** | See [`CHANGELOG.md`](CHANGELOG.md) |
 
